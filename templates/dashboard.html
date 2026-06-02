@@ -2,168 +2,172 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../static/dashboard-style.css">
-    <title>Place Order - Laundrify</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}">
+    <title>Dashboard - Laundrify</title>
 </head>
 <body>
     <header class="top-navbar">
-        <div class="logo-text">LAUNDRIFY</div>
-        <div class="user-tag"><span>Staff Counter: <strong>Juan Dela Cruz</strong></span></div>
+        <div class="brand-wrapper">
+            <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img">
+            <div class="logo-text">LAUNDRIFY</div>
+        </div>
+        <div class="date-display" id="liveDate">Loading date...</div>
     </header>
+    
     <div class="app-frame">
         <aside class="sidebar-nav">
-            <a href="dashboard.html" class="nav-link active">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\dashboard.png" class="nav-icon">Shop Overview</a>
-            <a href="order.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\order.png" class="nav-icon">New Laundry Order</a>
-            <a href="queue.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\queue.png" class="nav-icon">Orders Queue</a>
-            <a href="customers.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\customer.png" class="nav-icon">Registered Customers</a>
-            <a href="services.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\services.png" class="nav-icon">Laundry Services</a>
-            <a href="payments.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\history.png" class="nav-icon">Transaction History</a>
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link active">
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+            <a href="{{ url_for('order.pos') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">Point of Sale</a>
+            <a href="{{ url_for('queue.active_orders') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/queue.png') }}" class="nav-icon" alt="">Active Orders</a>
+            <a href="{{ url_for('customer.customers') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/customer.png') }}" class="nav-icon" alt="">Customers</a>
+            <a href="{{ url_for('service.services') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/services.png') }}" class="nav-icon" alt="">Price List</a>
+            <a href="{{ url_for('history.transaction_history') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Sales & Reports</a>
 
             <div class="logout-anchor">
-        <a href="login.html" class="nav-link logout-btn">
-            <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\logout.png" class="nav-icon">Log Out</a>
-    </div>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
+            </div>
         </aside>
+
         <main class="workspace">
-            <div id="view-dashboard" class="view-panel active-view">
-                <h1>System Dashboard Overview</h1>
+            <div id="view-order" class="view-panel active-view">
+                
+                <div class="dashboard-header">
+                    <h1>System Dashboard Overview</h1>
+                    <div class="dashboard-staff-info">
+                        <img src="{{ url_for('static', filename='images/user.png') }}" alt="User Icon">
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name', 'Active User') }} ({{ session.get('position', 'Staff') }})</strong></span>
+                    </div>
+                </div>
                 
                 <div class="dashboard-grid">
                     <div class="ui-card" style="border-top: 4px solid var(--brand-primary);">
-                        <h3>Today's Earnings</h3>
-                        <p class="metric-display">₱14,250.00</p>
-                        <p class="metric-subtext" style="color: var(--success);">↑ 12% vs yesterday</p>
+                        <h3>Today's Sales</h3>
+                        <p class="metric-display">₱{{ "%.2f" | format(today_sales) }}</p>
+                        <p class="metric-subtext" style="color: var(--success);">Collected today</p>
                     </div>
                     <div class="ui-card" style="border-top: 4px solid var(--warning);">
-                        <h3>Active Counter Queue</h3>
-                        <p class="metric-display">12 Orders</p>
-                        <p class="metric-subtext">Pending laundry dropoffs</p>
+                        <h3>Washing</h3>
+                        <p class="metric-display">{{ washing_count }} Orders</p>
+                        <p class="metric-subtext">Currently in progress</p>
                     </div>
                     <div class="ui-card" style="border-top: 4px solid var(--info);">
-                        <h3>Ready for Pickup</h3>
-                        <p class="metric-display">8 Batches</p>
-                        <p class="metric-subtext">Waiting for customer claim</p>
+                        <h3>Pickup</h3>
+                        <p class="metric-display">{{ pickup_count }} Batches</p>
+                        <p class="metric-subtext">Ready for claiming</p>
+                    </div>
+                    <div class="ui-card" style="border-top: 4px solid var(--delivery);">
+                        <h3>Delivery</h3>
+                        <p class="metric-display">{{ delivery_count }} Orders</p>
+                        <p class="metric-subtext">Active drop-offs</p>
                     </div>
                     <div class="ui-card" style="border-top: 4px solid var(--success);">
-                        <h3>Daily Goal Progress</h3>
-                        <p class="metric-display">78%</p>
-                        <p class="metric-subtext">Target: 50 Total orders</p>
+                        <h3>Completed</h3>
+                        <p class="metric-display">{{ completed_count }} Orders</p>
+                        <p class="metric-subtext">Fully paid & released</p>
                     </div>
                 </div>
 
                 <div class="feature-split-grid">
+                    
                     <div class="ui-card">
-                        <h3>Real-Time Fulfillment Status</h3>
-                        <table class="basket-table" style="margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0;">Real-Time Monitoring (10)</h3>
+                            <button class="btn-ui btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="window.location.href='{{ url_for('queue.active_orders') }}'">View All</button>
+                        </div>
+
+                        <table class="basket-table">
                             <thead>
                                 <tr>
                                     <th>Order ID</th>
                                     <th>Customer</th>
-                                    <th>Service Applied</th>
+                                    <th>Service</th>
+                                    <th>Amount</th>
+                                    <th>Payment</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for order in recent_orders %}
                                 <tr>
-                                    <td>ORD-1025</td>
-                                    <td>Maria Clara</td>
-                                    <td>Wash-Dry-Fold (5kg)</td>
-                                    <td>
-                                        <select class="status-select">
-                                            <option value="pending">Pending</option>
-                                            <option value="processing">Processing</option>
-                                            <option value="completed">Completed</option>
-                                        </select>
-                                    </td>
+                                    <td><strong>ORD-{{ "%03d" | format(order['OrderID']) }}</strong></td>
+                                    <td>{{ order['CustomerName'] }}</td>
+                                    <td style="font-size: 0.85rem; color: #475569;">{{ order['Services'] }}</td>
+                                    <td style="font-weight: bold;">₱{{ "%.2f" | format(order['TotalAmount']) }}</td>
+                                    <td><span class="badge-status status-{{ order['PaymentStatus'] | lower }}">{{ order['PaymentStatus'] }}</span></td>
+                                    <td><span class="badge-status status-{{ order['OrderStatus'] | lower }}">{{ order['OrderStatus'] }}</span></td>
                                 </tr>
+                                {% else %}
                                 <tr>
-                                    <td>ORD-1026</td>
-                                    <td>Crisostomo Ibarra</td>
-                                    <td>Dry Cleaning (2pcs)</td>
-                                    <td>
-                                        <select class="status-select">
-                                            <option value="pending">Pending</option>
-                                            <option value="processing">Processing</option>
-                                            <option value="completed">Completed</option>
-                                        </select>
-                                    </td>
+                                    <td colspan="6" style="text-align: center; padding: 20px; color: #94a3b8;">No active orders currently.</td>
                                 </tr>
-                                <tr>
-                                    <td>ORD-1022</td>
-                                    <td>Elias Sisa</td>
-                                    <td>Comforter Treatment</td>
-                                    <td>
-                                        <select class="status-select">
-                                            <option value="pending">Pending</option>
-                                            <option value="processing">Processing</option>
-                                            <option value="completed">Completed</option>
-                                        </select>
-                                    </td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="ui-card">
-                        <h3>Machine Station Monitoring Load</h3>
-                        <div style="margin-top: 10px;">
-                            <div class="machine-status-row">
-                                <div><strong>Washer Station #1</strong><br><small style="color: var(--text-muted);">Cycle: Heavy Wash</small></div>
-                                <div class="progress-bar-container"><div class="progress-fill" style="width: 75%;"></div></div>
-                            </div>
-                            <div class="machine-status-row">
-                                <div><strong>Washer Station #2</strong><br><small style="color: var(--success);">Available</small></div>
-                                <div class="progress-bar-container"><div class="progress-fill" style="width: 0%;"></div></div>
-                            </div>
-                            <div class="machine-status-row">
-                                <div><strong>Dryer Station #1</strong><br><small style="color: var(--text-muted);">Cycle: High Heat Eco</small></div>
-                                <div class="progress-bar-container"><div class="progress-fill" style="width: 40%;"></div></div>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        
+                        <div class="ui-card" style="margin-bottom: 0;">
+                            <h3>Quick Actions</h3>
+                            <div class="modern-quick-actions-container">
+                                <button class="quick-action-tile" onclick="window.location.href='{{ url_for('order.pos') }}'">
+                                    <img src="{{ url_for('static', filename='images/order.png') }}" alt="Order">
+                                    New Order
+                                </button>
+                                <button class="quick-action-tile" onclick="window.location.href='{{ url_for('history.transaction_history') }}'">
+                                    <img src="{{ url_for('static', filename='images/history.png') }}" alt="Payment">
+                                    Transactions
+                                </button>
+                                <button class="quick-action-tile" onclick="window.location.href='{{ url_for('customer.customers') }}'">
+                                    <img src="{{ url_for('static', filename='images/customer.png') }}" alt="Client">
+                                    Add Customer
+                                </button>
                             </div>
                         </div>
+
+                        <div class="ui-card" style="margin-bottom: 0;">
+                            <h3>My Shift Breakdown</h3>
+                            <div style="margin-top: 15px;">
+                                <div class="machine-status-row">
+                                    <div>
+                                        <strong>Cash in Drawer</strong><br>
+                                        <small style="color: var(--text-muted);">Physical payments today</small>
+                                    </div>
+                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--success);">₱{{ "%.2f" | format(cash_sales) }}</div>
+                                </div>
+                                <div class="machine-status-row">
+                                    <div>
+                                        <strong>Card / Online Payment</strong><br>
+                                        <small style="color: var(--text-muted);">Digital transfers today</small>
+                                    </div>
+                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--info);">₱{{ "%.2f" | format(online_sales) }}</div>
+                                </div>
+                                <div class="machine-status-row" style="border: none; padding-bottom: 0;">
+                                    <div>
+                                        <strong>Collectibles</strong><br>
+                                        <small style="color: var(--text-muted);">Total unpaid orders</small>
+                                    </div>
+                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--warning);">₱{{ "%.2f" | format(collectibles) }}</div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-
-            </main>
+        </main>
     </div>
 
-            <script>
-                        document.querySelectorAll('.status-select').forEach(select => {
-                            // Set initial color based on initial selection
-                            updateColor(select);
-
-                            // Update when changed
-                            select.addEventListener('change', function() {
-                                updateColor(this);
-                            });
-                        });
-
-                        function updateColor(el) {
-                            const value = el.value;
-
-                            if (value === 'pending') { 
-                                el.style.backgroundColor = '#fef3c7'; // Light Yellow
-                                el.style.color = '#d97706';           // Dark Yellow/Orange
-                            }
-                            else if (value === 'processing') { 
-                                el.style.backgroundColor = '#e0f2fe'; // Light Blue
-                                el.style.color = '#0369a1';           // Dark Blue
-                            }
-                            else if (value === 'completed') { 
-                                el.style.backgroundColor = '#dcfce7'; // Light Green
-                                el.style.color = '#15803d';           // Dark Green
-                            }
-                        }
-                        
-                    </script>
-
-
-
+    <script>
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+    </script>
 </body>
 </html>

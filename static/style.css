@@ -1,4 +1,3 @@
-/* Modern Flat Pink Palette & Resets */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -16,7 +15,6 @@ body {
     overflow: hidden;
 }
 
-/* Login Container Split Layout */
 .login-container {
     display: flex;
     background-color: #fff;
@@ -29,7 +27,6 @@ body {
     overflow: hidden;
 }
 
-/* Left Side: Brand & Logo Showcase */
 .brand-panel {
     flex: 1;
     background: linear-gradient(135deg, #ff8da1 0%, #df1e6a 100%);
@@ -75,7 +72,6 @@ body {
     opacity: 0.9;
 }
 
-/* Right Side: Form Controls */
 .form-panel {
     flex: 1;
     padding: 50px 40px;
@@ -96,7 +92,6 @@ body {
     margin-bottom: 30px;
 }
 
-/* Input Controls Framework */
 .form-element {
     margin-bottom: 20px;
 }
@@ -127,34 +122,34 @@ body {
     box-shadow: 0 0 0 3px rgba(223, 30, 106, 0.1);
 }
 
-/* Utility links */
-.form-options {
+.password-wrapper {
+    position: relative;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    font-size: 0.85rem;
 }
 
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #4a5568;
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px; 
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
     cursor: pointer;
+    color: #64748b;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.forgot-pass {
-    color: #df1e6a;
-    text-decoration: none;
-    font-weight: 600;
+.toggle-password:hover {
+    color: #df1e6a; 
 }
 
-.forgot-pass:hover {
-    text-decoration: underline;
-}
-
-/* Action Controls Buttons styling */
 .btn-ui {
     display: block;
     width: 100%;

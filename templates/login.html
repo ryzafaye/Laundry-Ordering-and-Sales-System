@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laundrify - Staff Login</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
@@ -12,40 +12,82 @@
         
         <div class="brand-panel">
             <div class="logo-wrapper">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\laundrify_logo.png" alt="Laundrify Logo" class="logo-img">
+                <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Laundrify Logo" class="logo-img" onerror="this.style.display='none'">
             </div>
             <h2>LAUNDRIFY</h2>
-            <p>Smart Laundry Management System</p>
+            <p>Laundry Ordering & Sales Management System</p>
         </div>
 
         <main class="form-panel">
             <h1>Welcome to Laundrify</h1>
             <p class="form-subtitle">Ready for today's orders? Sign in below.</p>
 
-            <div class="form-element">
-                <label for="username">Employee ID / Email</label>
-                <input type="text" id="username" placeholder="e.g., staff-001" required>
-            </div>
+            {% with messages = get_flashed_messages(category_filter=["error"]) %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div style="background-color: #fef2f2; color: #ef4444; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; text-align: center; border: 1px solid #fee2e2;">
+                      {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
 
-            <div class="form-element">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="••••••••" required>
-            </div>
+            <form id="loginForm" action="/login" method="POST">
+                <div class="form-element">
+                    <label for="empid">Employee ID Number</label>
+                    <input type="text" id="empid" name="emp_id" placeholder="e.g. ADM-001 or EMP-002" required>
+                </div>
 
-            <div class="form-options">
-                <label class="remember-me">
-                    <input type="checkbox"> Remember Me
-                </label>
-                <a href="#" class="forgot-pass">Forgot Password?</a>
-            </div>
+                <div class="form-element">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        
+                        <button type="button" class="toggle-password" onclick="togglePassword()" title="Show/Hide Password">
+                            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-            <a href="dashboard.html" style="text-decoration: none; display: block; width: 100%;">
-                <button type="button" class="btn-ui btn-success">SIGN IN</button>
-            </a>
+                <div style="text-align: right; margin-top: 8px; margin-bottom: 5px;">
+                    <a href="#" onclick="alert('For security purposes, please contact the System Administrator to reset your account password.'); return false;" style="color: #db2777; font-size: 0.85rem; text-decoration: none; font-weight: 600; transition: 0.2s;" onmouseover="this.style.color='#be185d'" onmouseout="this.style.color='#db2777'">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-ui btn-success" style="margin-top: 15px; width: 100%;">
+                    SIGN IN
+                </button>
+            </form>
             
-        </main>
+            </main>
 
     </div>
 
+    <script>
+        function togglePassword() {
+            const pwdInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                // Papalitan natin ang icon na may ekis (Eye-off)
+                eyeIcon.innerHTML = `
+                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                    <line x1="2" y1="2" x2="22" y2="22"></line>
+                `;
+            } else {
+                pwdInput.type = 'password';
+                // Ibabalik sa normal na mata
+                eyeIcon.innerHTML = `
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                `;
+            }
+        }
+    </script>
 </body>
 </html>

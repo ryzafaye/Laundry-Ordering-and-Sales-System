@@ -1,0 +1,57 @@
+.history-table-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    height: calc(100vh - 160px); 
+    display: flex;
+    flex-direction: column;
+}
+
+.history-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.search-container {
+    display: flex;
+    gap: 10px;
+    width: 70%;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+    background-color: white;
+    font-size: 0.9rem;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.badge-paid { background-color: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+.badge-unpaid { background-color: #fef3c7; color: #d97706; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+.badge-pickup { background-color: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.badge-delivery { background-color: #ede9fe; color: #6d28d9; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+.badge-paid { background-color: transparent; color: #15803d; }
+.badge-cancelled { background-color: transparent; color: #ef4444; }
+.services-cell { max-width: 250px; white-space: normal; line-height: 1.4; font-size: 0.9rem; }

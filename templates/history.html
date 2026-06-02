@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transaction History - Laundrify</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='history.css') }}">
+</head>
+<body>
+    <header class="top-navbar">
+        <div class="brand-wrapper">
+            <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img">
+            <div class="logo-text">LAUNDRIFY</div>
+        </div>
+        <div class="date-display" id="liveDate">Loading date...</div>
+    </header>
+    
+    <div class="app-frame">
+        <aside class="sidebar-nav">
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+            <a href="{{ url_for('order.pos') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">Point of Sale</a>
+            <a href="{{ url_for('queue.active_orders') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/queue.png') }}" class="nav-icon" alt="">Active Orders</a>
+            <a href="{{ url_for('customer.customers') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/customer.png') }}" class="nav-icon" alt="">Customers</a>
+            <a href="{{ url_for('service.services') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/services.png') }}" class="nav-icon" alt="">Services</a>
+            <a href="{{ url_for('history.transaction_history') }}" class="nav-link active">
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Transactions</a>
+
+            <div class="logout-anchor">
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
+            </div>
+        </aside>
+
+        <main class="workspace">
+            <div id="view-payments" class="view-panel active-view">
+                
+                <div class="dashboard-header">
+                    <h1 style="margin: 0;">Transaction History</h1>
+                    <div class="dashboard-staff-info">
+                        <img src="../static/images/user.png" alt="Staff Icon">
+                        <span>Staff Counter: <strong style="color: var(--brand-dark);">Active User</strong></span>
+                    </div>
+                </div>
+                
+                <div class="history-table-card ui-card" style="margin-top: 20px;">
+                    <div class="history-controls">
+                        <div class="search-container" style="display: flex; gap: 10px;">
+                            <input type="text" id="searchHistory" class="search-input" placeholder="Search by ID or Customer..." oninput="filterHistory()" style="width: 250px;">
+                            <input type="date" id="dateFilter" class="filter-select" onchange="filterHistory()">
+                            
+                            <!-- Binago ang Filter para maging Paid at Cancelled -->
+                            <select id="statusFilter" class="filter-select" onchange="filterHistory()">
+                                <option value="all">Status: All</option>
+                                <option value="paid">Paid</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div id="historyCount" style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Showing records...</div>
+                    </div>
+
+                    <div class="table-wrapper" style="margin-top: 15px;">
+                        <table class="basket-table" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>Order Details</th>
+                                    <th>Services Availed</th>
+                                    <th>Order Date</th>
+                                    <th>Date Claimed</th>
+                                    <th>Pay Method</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <!-- Extracting just the YYYY-MM-DD for the date filter logic -->
+                                <tr data-status="{{ record['Status'] | lower }}" data-date="{{ record['OrderDate'][:10] }}">
+                                    <td><strong>PAY-{{ "%03d" | format(record['PaymentID']) }}</strong></td>
+                                    <td>
+                                        <span style="color: #64748b; font-size: 0.8rem;">ORD-{{ "%03d" | format(record['OrderID']) }}</span><br>
+                                        {{ record['CustomerName'] }}
+                                    </td>
+                                    
+                                    <td class="services-cell" style="color: #475569; line-height: 1.6;">{{ record['ServiceNames'] | safe }}</td>
+                                    
+                                    <td style="font-size: 0.9rem;">{{ record['OrderDate'] }}</td>
+                                    <td style="font-size: 0.9rem; color: {% if record['ClaimedDate'] == '---' %}#94a3b8{% else %}#0f172a{% endif %};">{{ record['ClaimedDate'] }}</td>
+                                    
+                                    <td style="font-weight: 500; color: #334155;">{{ record['PaymentMethod'] }}</td>
+                                    
+                                    <td>
+                                        {% if record['Status'] == 'Cancelled' %}
+                                            <span class="badge badge-cancelled">Cancelled</span>
+                                        {% else %}
+                                            <span class="badge badge-paid">Paid</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <!-- LOGIC: RED kapag cancelled, GREEN kapag paid -->
+                                    <td style="text-align: right; font-weight: bold; font-size: 1.05rem; color: {% if record['Status'] == 'Cancelled' %}#ef4444{% else %}#15803d{% endif %};">
+                                        ₱{{ "%.2f" | format(record['AmountPaid']) }}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
+                                        No transactions found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+
+        function filterHistory() {
+            const query = document.getElementById('searchHistory').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            const dateFilter = document.getElementById('dateFilter').value;
+            const rows = document.querySelectorAll('#historyTable tbody tr');
+            
+            let visibleCount = 0;
+            rows.forEach(row => {
+                if(row.children.length === 1) return;
+
+                const rowText = row.textContent.toLowerCase();
+                const rowStatus = row.getAttribute('data-status'); 
+                const rowDate = row.getAttribute('data-date'); 
+
+                const matchesSearch = rowText.includes(query);
+                const matchesStatus = (statusFilter === 'all') || (rowStatus === statusFilter);
+                const matchesDate = (dateFilter === '') || (rowDate === dateFilter);
+
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            document.getElementById('historyCount').innerHTML = `Showing <strong>${visibleCount}</strong> records`;
+        }
+        
+        window.onload = filterHistory;
+    </script>
+</body>
+</html>

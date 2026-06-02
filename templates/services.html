@@ -2,51 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../static/dashboard-style.css">
-    <title>Place Order - Laundrify</title>
+    <title>Services - Laundrify</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='services.css') }}">
 </head>
 <body>
     <header class="top-navbar">
-        <div class="logo-text">LAUNDRIFY</div>
-        <div class="user-tag"><span>Staff Counter: <strong>Juan Dela Cruz</strong></span></div>
+        <div class="brand-wrapper">
+            <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img">
+            <div class="logo-text">LAUNDRIFY</div>
+        </div>
+        <div class="date-display" id="liveDate">Loading date...</div>
     </header>
+    
     <div class="app-frame">
         <aside class="sidebar-nav">
-            <a href="dashboard.html" class="nav-link active">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\dashboard.png" class="nav-icon">Shop Overview</a>
-            <a href="order.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\order.png" class="nav-icon">New Laundry Order</a>
-            <a href="queue.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\queue.png" class="nav-icon">Orders Queue</a>
-            <a href="customers.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\customer.png" class="nav-icon">Registered Customers</a>
-            <a href="services.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\services.png" class="nav-icon">Laundry Services</a>
-            <a href="payments.html" class="nav-link">
-                <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\history.png" class="nav-icon">Transaction History</a>
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+            <a href="{{ url_for('order.pos') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">Point of Sale</a>
+            <a href="{{ url_for('queue.active_orders') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/queue.png') }}" class="nav-icon" alt="">Active Orders</a>
+            <a href="{{ url_for('customer.customers') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/customer.png') }}" class="nav-icon" alt="">Customers</a>
+            <a href="{{ url_for('service.services') }}" class="nav-link active">
+                <img src="{{ url_for('static', filename='images/services.png') }}" class="nav-icon" alt="">Services</a>
+            <a href="{{ url_for('history.transaction_history') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Transactions</a>
 
             <div class="logout-anchor">
-        <a href="login.html" class="nav-link logout-btn">
-            <img src="C:\Users\Arabella\GitHub\Laundy-Ordering-and-Sales-System\images\logout.png" class="nav-icon">Log Out</a>
-    </div>
-    
-        </aside>
-        <main class="workspace">
-             <div id="view-services" class="view-panel active-view">
-                <h1>Laundry Service Price List</h1>
-                <div class="ui-card">
-                    <table class="basket-table">
-                        <thead>
-                            <tr><th>Service ID</th><th>Service Name</th><th>Base Rate</th><th>Unit Basis</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>1</td><td>Wash-Dry-Fold</td><td>₱50.00</td><td>kg</td></tr>
-                            <tr><td>2</td><td>Dry Cleaning</td><td>₱120.00</td><td>pc</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
             </div>
-            </main>
+        </aside>
+
+
+        <main class="workspace">
+            <div id="view-services" class="view-panel active-view">
+                
+                <div class="dashboard-header">
+                    <h1 style="margin: 0;">Laundry Services</h1>
+                    <div class="dashboard-staff-info">
+                        <img src="{{ url_for('static', filename='images/customer.png') }}" alt="User Icon">
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
+                    </div>
+                </div>
+                
+                <div class="service-table-card">
+                    <div class="services-table-card">
+                    <div class="table-header-row">
+                        <h3>Laundrify Services List</h3>
+                        <div class="search-box">
+                            <input type="text" id="searchService" class="form-control" placeholder="Search service name..." oninput="filterServices()">
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="basket-table" id="serviceTable">
+                            <thead>
+                                <tr>
+                                    <th>Service ID</th>
+                                    <th>Service Name</th>
+                                    <th>Description</th>
+                                    <th>Base Rate</th>
+                                    <th>Unit Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in services %}
+                                <tr>
+                                    <td><strong>SRV-{{ "%03d" | format(s['ServiceID']) }}</strong></td>
+                                    <td style="font-weight: bold; color: var(--brand-dark);">{{ s['ServiceName'] }}</td>
+                                    <td style="color: #64748b; font-size: 0.9rem;">{{ s['Description'] }}</td>
+                                    <td style="font-weight: bold; color: #15803d;">₱{{ "%.2f" | format(s['Rate']) }}</td>
+                                    <td>
+                                        <span style="color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">
+                                            {{ s['UnitType'] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">
+                                        No laundry services available at the moment.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
     </div>
+
+    <script>
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+
+        function filterServices() {
+            const query = document.getElementById('searchService').value.toLowerCase();
+            const rows = document.querySelectorAll('#serviceTable tbody tr');
+
+            rows.forEach(row => {
+                if (row.querySelector('td[colspan="5"]')) {
+                    if (query.length > 0) {
+                        row.style.display = 'none';
+                    } else {
+                        row.style.display = '';
+                    }
+                    return; 
+                }
+
+                const rowText = row.textContent.toLowerCase();
+                if (rowText.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
 </body>
 </html>

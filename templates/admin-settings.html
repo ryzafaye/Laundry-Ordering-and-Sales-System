@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Settings - Laundrify</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin-settings.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin-staff.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='services.css') }}">
+</head>
+<body>
+    <header class="top-navbar">
+        <div class="brand-wrapper">
+            <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img">
+            <div class="logo-text">LAUNDRIFY | ADMIN</div>
+        </div>
+        <div class="date-display" id="liveDate">Loading date...</div>
+    </header>
+    
+    <div class="app-frame">
+        <aside class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+            <a href="{{ url_for('admin.staff_management') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/employee.png') }}" class="nav-icon" alt="">Manage Staff</a>
+            <a href="{{ url_for('admin.all_orders') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">All Orders</a>
+            <a href="{{ url_for('admin.financial_reports') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Reports</a>
+            <a href="{{ url_for('admin.system_settings') }}" class="nav-link active">
+                <img src="{{ url_for('static', filename='images/settings.png') }}" class="nav-icon" alt="">Settings</a>
+
+            <div class="logout-anchor">
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out
+                </a>
+            </div>
+        </aside>
+
+        <main class="workspace">
+            <div class="dashboard-header">
+                <h1>System Settings</h1>
+            </div>
+
+            <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                
+                <div class="ui-card card-accent-info">
+                    <h3>Admin Profile & Access</h3>
+                    <form action="{{ url_for('admin.update_profile') }}" method="POST">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" name="first_name" class="form-control" value="{{ admin.FirstName }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" name="last_name" class="form-control" value="{{ admin.LastName }}" required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label>Contact Number</label>
+                            <input type="text" name="contact" class="form-control" value="{{ admin.ContactNumber }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Update Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password">
+                        </div>
+                        <button type="submit" class="btn-pink">Update Admin Profile</button>
+                    </form>
+                </div>
+
+                <div class="ui-card card-accent-brand">
+                    <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                        Business Preferences 
+                        <span style="font-size: 0.7rem; background: #e2e8f0; color: #64748b; padding: 3px 8px; border-radius: 10px; font-weight: normal; letter-spacing: 0;">LOCKED</span>
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Shop Name</label>
+                            <input type="text" class="form-control" value="Laundrify Main Branch" readonly style="background-color: #f8fafc; color: #64748b; cursor: not-allowed;">
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <input type="text" class="form-control" value="0917-123-4567" readonly style="background-color: #f8fafc; color: #64748b; cursor: not-allowed;">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>Shop Full Address</label>
+                        <input type="text" class="form-control" value="Biñan, Laguna, Philippines" readonly style="background-color: #f8fafc; color: #64748b; cursor: not-allowed;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px dashed #e2e8f0; margin-top: 15px; padding-top: 15px;">
+                        <div class="form-group">
+                            <label>TIN / Registration No.</label>
+                            <input type="text" class="form-control" value="123-456-789-000" readonly style="background-color: #f8fafc; color: #64748b; cursor: not-allowed;">
+                        </div>
+                        <div class="form-group">
+                            <label>Receipt Footer Message</label>
+                            <input type="text" class="form-control" value="Thank you for trusting Laundrify!" readonly style="background-color: #f8fafc; color: #64748b; cursor: not-allowed;">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="ui-card card-accent-brand" style="margin-bottom: 40px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">
+                    <h3 style="border: none; margin: 0; padding: 0;">Laundry Services & Pricing Configuration</h3>
+                    <button class="btn-pink" style="width: auto; margin: 0;" onclick="openAddModal()">+ Add Service</button>
+                </div>
+                
+                <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
+                    <thead style="background: none; border-bottom: 2px solid #f1f5f9;">
+                        <tr>
+                            <th style="padding-left: 0;">Service Name</th>
+                            <th>Unit Type</th>
+                            <th>Current Rate</th>
+                            <th style="text-align: center; width: 120px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for srv in services %}
+                        <tr>
+                            <td style="padding-left: 0; font-weight: 500; color: #334155;">{{ srv.ServiceName }}</td>
+                            <td style="color: #64748b;">{{ srv.UnitType }}</td>
+                            <td style="font-weight: 600; color: #166534;">₱{{ "%.2f" | format(srv.Rate) }}</td>
+                            <td style="text-align: center;">
+                                <button class="btn-outline-pink" 
+                                    onclick="openEditModal('{{ srv.ServiceID }}', '{{ srv.ServiceName }}', '{{ srv.UnitType }}', '{{ srv.Rate }}')">
+                                    Edit Rate
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="text-align: center; color: #94a3b8;">No services configured in the database.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="addServiceModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0; color: #db2777;">Add New Service</h3>
+                <button class="close-btn" type="button" onclick="closeAddModal()">&times;</button>
+            </div>
+            <form action="{{ url_for('admin.add_service') }}" method="POST">
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Service Name</label>
+                    <input type="text" name="service_name" class="form-control" required placeholder="e.g. Bed Sheet Cleaning">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Unit Type</label>
+                        <select name="unit_type" class="form-control" required>
+                            <option value="Per Kilogram">Per Kilogram</option>
+                            <option value="Per Piece">Per Piece</option>
+                            <option value="Per Load">Per Load</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Rate (₱)</label>
+                        <input type="number" step="0.01" name="rate" class="form-control" required placeholder="0.00">
+                    </div>
+                </div>
+                <button type="submit" class="btn-pink">Save Service</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editServiceModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0; color: #db2777;">Edit Service Rate</h3>
+                <button class="close-btn" type="button" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editServiceForm" method="POST">
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Service Name</label>
+                    <input type="text" name="service_name" id="edit_name" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Unit Type</label>
+                        <select name="unit_type" id="edit_unit" class="form-control" required>
+                            <option value="Per Kilogram">Per Kilogram</option>
+                            <option value="Per Piece">Per Piece</option>
+                            <option value="Per Load">Per Load</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Rate (₱)</label>
+                        <input type="number" step="0.01" name="rate" id="edit_rate" class="form-control" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-pink">Update Service</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+
+        function openAddModal() { document.getElementById('addServiceModal').style.display = 'flex'; }
+        function closeAddModal() { document.getElementById('addServiceModal').style.display = 'none'; }
+
+        function openEditModal(id, name, unit, rate) {
+            document.getElementById('edit_name').value = name;
+            
+            const unitSelect = document.getElementById('edit_unit');
+            for (let i = 0; i < unitSelect.options.length; i++) {
+                if (unitSelect.options[i].value === unit) {
+                    unitSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            
+            document.getElementById('edit_rate').value = rate;
+            document.getElementById('editServiceForm').action = "/admin/settings/edit_service/" + id;
+            document.getElementById('editServiceModal').style.display = 'flex';
+        }
+        function closeEditModal() { document.getElementById('editServiceModal').style.display = 'none'; }
+    </script>
+</body>
+</html>
