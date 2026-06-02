@@ -403,34 +403,53 @@ def update_profile():
 
 @admin_controller.route('/settings/add_service', methods=['POST'])
 def add_service():
-    if not is_admin(): return redirect(url_for('auth.login'))
-    
-    name = request.form.get('service_name')
-    unit = request.form.get('unit_type')
+    service_name = request.form.get('service_name')
+    description = request.form.get('description', '') 
+    unit_type = request.form.get('unit_type')
     rate = request.form.get('rate')
-    
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO "SERVICES" ("ServiceName", "UnitType", "Rate") VALUES (?, ?, ?)', (name, unit, float(rate)))
-    conn.commit()
-    conn.close()
+
+    try:
+        conn = sqlite3.connect('laundrify.db', timeout=10)
+        cursor = conn.cursor()
         
+        cursor.execute('''
+            INSERT INTO "SERVICES" ("ServiceName", "Description", "UnitType", "Rate") 
+            VALUES (?, ?, ?, ?)
+        ''', (service_name, description, unit_type, rate))
+        
+        conn.commit()
+    except Exception as e:
+        print(f"Error adding service: {e}")
+    finally:
+        if conn:
+            conn.close()
+
     return redirect(url_for('admin.system_settings'))
 
-@admin_controller.route('/settings/edit_service/<int:service_id>', methods=['POST'])
-def edit_service(service_id):
-    if not is_admin(): return redirect(url_for('auth.login'))
-    
-    name = request.form.get('service_name')
-    unit = request.form.get('unit_type')
+@admin_controller.route('/settings/edit_service/<int:id>', methods=['POST'])
+def edit_service(id):
+    service_name = request.form.get('service_name')
+    description = request.form.get('description', '') 
+    unit_type = request.form.get('unit_type')
     rate = request.form.get('rate')
-    
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute('UPDATE "SERVICES" SET "ServiceName" = ?, "UnitType" = ?, "Rate" = ? WHERE "ServiceID" = ?', (name, unit, float(rate), service_id))
-    conn.commit()
-    conn.close()
+
+    try:
+        conn = sqlite3.connect('laundrify.db', timeout=10)
+        cursor = conn.cursor()
         
+        cursor.execute('''
+            UPDATE "SERVICES" 
+            SET "ServiceName" = ?, "Description" = ?, "UnitType" = ?, "Rate" = ? 
+            WHERE "ServiceID" = ?
+        ''', (service_name, description, unit_type, rate, id))
+        
+        conn.commit()
+    except Exception as e:
+        print(f"Error updating service: {e}")
+    finally:
+        if conn:
+            conn.close()
+
     return redirect(url_for('admin.system_settings'))
 
 @admin_controller.route('/settings/delete_service/<int:id>', methods=['POST'])

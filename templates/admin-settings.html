@@ -72,7 +72,6 @@
                 <div class="ui-card card-accent-brand">
                     <h3 style="display: flex; justify-content: space-between; align-items: center;">
                         Business Preferences 
-                        <span style="font-size: 0.7rem; background: #e2e8f0; color: #64748b; padding: 3px 8px; border-radius: 10px; font-weight: normal; letter-spacing: 0;">LOCKED</span>
                     </h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div class="form-group">
@@ -122,7 +121,7 @@
                     <tbody>
                         {% for srv in services %}
                         <tr>
-                            <td style="padding-left: 0; color: #94a3b8; font-weight: bold;">
+                            <td style="padding-left: 0; color: #404447; font-weight: bold;">
                                 SVC-{{ "%03d" | format(srv.ServiceID|int) }}
                             </td>
                             
@@ -168,19 +167,17 @@
             <form action="{{ url_for('admin.add_service') }}" method="POST">
                 <div class="form-group" style="margin-top: 15px;">
                     <label>Service Name</label>
-                    <input type="text" name="service_name" class="form-control" required placeholder="e.g. Bed Sheet Cleaning">
+                    <input type="text" name="service_name" class="form-control" required>
                 </div>
                 <div class="form-group" style="margin-top: 10px;">
                     <label>Description</label>
-                    <textarea name="description" class="form-control" rows="2" placeholder="Brief description of the service"></textarea>
-                </div>
+                    <textarea name="description" class="form-control" placeholder="Brief description of the service" style="resize: none; height: 80px;"></textarea>                </div>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Unit Type</label>
                         <select name="unit_type" class="form-control" required>
                             <option value="Per Kilogram">Per Kilogram</option>
                             <option value="Per Piece">Per Piece</option>
-                            <option value="Per Load">Per Load</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex: 1;">
@@ -206,15 +203,13 @@
                 </div>
                 <div class="form-group" style="margin-top: 10px;">
                     <label>Description</label>
-                    <textarea name="description" id="edit_desc" class="form-control" rows="2"></textarea>
-                </div>
+                    <textarea name="description" id="edit_desc" class="form-control" style="resize: none; height: 80px;"></textarea>                </div>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Unit Type</label>
                         <select name="unit_type" id="edit_unit" class="form-control" required>
                             <option value="Per Kilogram">Per Kilogram</option>
                             <option value="Per Piece">Per Piece</option>
-                            <option value="Per Load">Per Load</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex: 1;">
