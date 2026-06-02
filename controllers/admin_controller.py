@@ -432,3 +432,22 @@ def edit_service(service_id):
     conn.close()
         
     return redirect(url_for('admin.system_settings'))
+
+@admin_controller.route('/settings/delete_service/<int:id>', methods=['POST'])
+def delete_service(id):
+    try:
+        conn = sqlite3.connect('laundrify.db', timeout=10)
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM "SERVICES" WHERE ServiceID = ?', (id,))
+        
+        conn.commit()
+        
+    except Exception as e:
+        print(f"ERROR DELETING THE SERVICE: {e}")
+        
+    finally:
+        if conn:
+            conn.close()
+
+    return redirect(url_for('admin.system_settings'))

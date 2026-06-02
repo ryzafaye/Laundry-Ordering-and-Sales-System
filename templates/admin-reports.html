@@ -222,7 +222,6 @@
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
 
-        // 1. BAR CHART: Periodic Sales
         const ctxSales = document.getElementById('salesChart').getContext('2d');
         new Chart(ctxSales, {
             type: 'bar',

@@ -108,30 +108,49 @@
                     <button class="btn-pink" style="width: auto; margin: 0;" onclick="openAddModal()">+ Add Service</button>
                 </div>
                 
-                <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
+                <table class="basket-table" style="width: 100%; margin: 0; box-shadow: none; border: none; table-layout: fixed; border-collapse: collapse;">
                     <thead style="background: none; border-bottom: 2px solid #f1f5f9;">
                         <tr>
-                            <th style="padding-left: 0;">Service Name</th>
-                            <th>Unit Type</th>
-                            <th>Current Rate</th>
-                            <th style="text-align: center; width: 120px;">Action</th>
+                            <th style="padding-left: 0; width: 12%;">Service ID</th>
+                            <th style="width: 20%;">Service Name</th>
+                            <th style="width: 25%;">Description</th>
+                            <th style="width: 15%;">Unit Type</th>
+                            <th style="width: 13%;">Rate</th>
+                            <th style="text-align: center; width: 15%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for srv in services %}
                         <tr>
-                            <td style="padding-left: 0; font-weight: 500; color: #334155;">{{ srv.ServiceName }}</td>
+                            <td style="padding-left: 0; color: #94a3b8; font-weight: bold;">
+                                SVC-{{ "%03d" | format(srv.ServiceID|int) }}
+                            </td>
+                            
+                            <td style="font-weight: 500; color: #334155; word-wrap: break-word;">{{ srv.ServiceName }}</td>
+                            <td style="color: #64748b; font-size: 0.85rem; word-wrap: break-word;">{{ srv.Description or 'No description provided' }}</td>
                             <td style="color: #64748b;">{{ srv.UnitType }}</td>
                             <td style="font-weight: 600; color: #166534;">₱{{ "%.2f" | format(srv.Rate) }}</td>
-                            <td style="text-align: center;">
-                                <button class="btn-outline-pink" 
-                                    onclick="openEditModal('{{ srv.ServiceID }}', '{{ srv.ServiceName }}', '{{ srv.UnitType }}', '{{ srv.Rate }}')">
-                                    Edit Rate
+                            
+                            <td style="text-align: center; display: flex; justify-content: center; gap: 5px;">
+                                <button class="btn-outline-pink" style="padding: 5px 10px; font-size: 0.8rem;"
+                                    onclick="openEditModal('{{ srv.ServiceID }}', '{{ srv.ServiceName }}', '{{ srv.Description | escape }}', '{{ srv.UnitType }}', '{{ srv.Rate }}')">
+                                    Edit
                                 </button>
+                                
+                                <form action="{{ url_for('admin.delete_service', id=srv.ServiceID) }}" method="POST" style="margin: 0;">
+                                    <button type="submit" class="btn-outline-pink" style="padding: 5px 10px; font-size: 0.8rem; color: #ef4444; border-color: #ef4444;" 
+                                        onclick="return confirm('Are you sure you want to delete this service?');">
+                                        Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="4" style="text-align: center; color: #94a3b8;">No services configured in the database.</td></tr>
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px 20px; color: #94a3b8; border-bottom: 1px solid #e2e8f0;">
+                                No services configured in the database.
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -151,7 +170,11 @@
                     <label>Service Name</label>
                     <input type="text" name="service_name" class="form-control" required placeholder="e.g. Bed Sheet Cleaning">
                 </div>
-                <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="margin-top: 10px;">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="Brief description of the service"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Unit Type</label>
                         <select name="unit_type" class="form-control" required>
@@ -165,7 +188,7 @@
                         <input type="number" step="0.01" name="rate" class="form-control" required placeholder="0.00">
                     </div>
                 </div>
-                <button type="submit" class="btn-pink">Save Service</button>
+                <button type="submit" class="btn-pink" style="margin-top: 15px;">Save Service</button>
             </form>
         </div>
     </div>
@@ -173,7 +196,7 @@
     <div id="editServiceModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 style="margin: 0; color: #db2777;">Edit Service Rate</h3>
+                <h3 style="margin: 0; color: #db2777;">Edit Service</h3>
                 <button class="close-btn" type="button" onclick="closeEditModal()">&times;</button>
             </div>
             <form id="editServiceForm" method="POST">
@@ -181,7 +204,11 @@
                     <label>Service Name</label>
                     <input type="text" name="service_name" id="edit_name" class="form-control" required>
                 </div>
-                <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="margin-top: 10px;">
+                    <label>Description</label>
+                    <textarea name="description" id="edit_desc" class="form-control" rows="2"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Unit Type</label>
                         <select name="unit_type" id="edit_unit" class="form-control" required>
@@ -195,7 +222,7 @@
                         <input type="number" step="0.01" name="rate" id="edit_rate" class="form-control" required>
                     </div>
                 </div>
-                <button type="submit" class="btn-pink">Update Service</button>
+                <button type="submit" class="btn-pink" style="margin-top: 15px;">Update Service</button>
             </form>
         </div>
     </div>
@@ -207,8 +234,9 @@
         function openAddModal() { document.getElementById('addServiceModal').style.display = 'flex'; }
         function closeAddModal() { document.getElementById('addServiceModal').style.display = 'none'; }
 
-        function openEditModal(id, name, unit, rate) {
+        function openEditModal(id, name, desc, unit, rate) {
             document.getElementById('edit_name').value = name;
+            document.getElementById('edit_desc').value = desc !== 'None' ? desc : '';
             
             const unitSelect = document.getElementById('edit_unit');
             for (let i = 0; i < unitSelect.options.length; i++) {
