@@ -1,4 +1,3 @@
-
 .customer-table-card {
     background-color: #ffffff;
     border: 1px solid #e2e8f0;
@@ -69,7 +68,7 @@
 .btn-text-edit {
     background: none;
     border: none;
-    color: #3b82f6; /* Blue for Edit */
+    color: #3b82f6; 
     font-size: 0.85rem;
     font-weight: bold;
     cursor: pointer;
@@ -81,7 +80,7 @@
 .btn-text-delete {
     background: none;
     border: none;
-    color: #ef4444; /* Red for Delete */
+    color: #ef4444;
     font-size: 0.85rem;
     font-weight: bold;
     cursor: pointer;
@@ -213,3 +212,16 @@
 }
 
 .btn-error-close:hover { background-color: #dc2626; }
+
+.is-invalid {
+    border-color: #ef4444 !00important;
+    background-color: #fef2f2;
+}
+
+.field-error-msg {
+    color: #ef4444;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-top: 4px;
+    display: none; 
+}

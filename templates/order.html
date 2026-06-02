@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Create Order - Laundrify</title>
-    <link rel="stylesheet" href="../static/dashboard-style.css">
-    <link rel="stylesheet" href="../static/order.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='order.css') }}">
 </head>
 <body>
     <header class="top-navbar">
         <div class="brand-wrapper">
-            <img src="../static/images/laundrify_logo.png" alt="Logo" class="nav-logo-img">
+            <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img">
             <div class="logo-text">LAUNDRIFY</div>
         </div>
         <div class="date-display" id="liveDate">Loading date...</div>
     </header>
-    
+
     <div class="app-frame">
         <aside class="sidebar-nav">
-            <a href="dashboard.html" class="nav-link">
-                <img src="../static/images/dashboard.png" class="nav-icon" alt="">Dashboard</a>
-            <a href="order.html" class="nav-link active">
-                <img src="../static/images/order.png" class="nav-icon" alt="">Create Order</a>
-            <a href="queue.html" class="nav-link">
-                <img src="../static/images/queue.png" class="nav-icon" alt="">Active Orders</a>
-            <a href="customers.html" class="nav-link">
-                <img src="../static/images/customer.png" class="nav-icon" alt="">Customers</a>
-            <a href="services.html" class="nav-link">
-                <img src="../static/images/services.png" class="nav-icon" alt="">Services</a>
-            <a href="payments.html" class="nav-link">
-                <img src="../static/images/history.png" class="nav-icon" alt="">Transactions</a>
-
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+            <a href="{{ url_for('order.pos') }}" class="nav-link active">
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">Point of Sale</a>
+            <a href="{{ url_for('queue.active_orders') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/queue.png') }}" class="nav-icon" alt="">Active Orders</a>
+            <a href="{{ url_for('customer.customers') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/customer.png') }}" class="nav-icon" alt="">Customers</a>
+            <a href="{{ url_for('service.services') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/services.png') }}" class="nav-icon" alt="">Price List</a>
+            <a href="{{ url_for('history.transaction_history') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Sales & Reports</a>
             <div class="logout-anchor">
-                <a href="login.html" class="nav-link logout-btn">
-                    <img src="../static/images/logout.png" class="nav-icon" alt="">Log Out</a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
             </div>
         </aside>
 
@@ -42,127 +41,97 @@
                 <div class="dashboard-header">
                     <h1>Point of Sales</h1>
                     <div class="dashboard-staff-info">
-                        <img src="../static/images/user.png" alt="Staff Icon">
-                        <span>Staff Counter: <strong style="color: var(--brand-dark);">Juan Dela Cruz</strong></span>
+                        <img src="{{ url_for('static', filename='images/customer.png') }}" alt="User Icon">
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
                     </div>
                 </div>
-                
-                <form class="pos-wrapper" onsubmit="event.preventDefault();">
+
+               <form class="pos-wrapper" id="posForm" action="/save_order" method="POST" onsubmit="event.preventDefault();" style="display: flex; gap: 20px; align-items: stretch;">
                     
-                    <div>
-                        <div class="pos-section" style="margin-bottom: 15px;">
+                    <input type="hidden" name="basket_data" id="basket-data-input">
+                    <input type="hidden" name="customer_id" id="hidden-customer-id">
+                    
+                    <div class="pos-left-panel" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                        
+                        <div class="pos-section">
                             <h3>1. Customer Details</h3>
-                            
-                            <div class="form-group" style="margin-bottom: 15px;">
+                            <div class="form-group" style="margin-bottom: 10px;">
                                 <label for="cust-search">Search Registered Customer</label>
-                                <div style="display: flex; gap: 10px; align-items: flex-start;">
-                                    <div class="autocomplete-container">
-                                        <div class="search-wrapper">
-                                            <input type="text" id="cust-search" placeholder="Type name (e.g. Maria or Jazmine)..." oninput="handleSearch()">
-                                            <button type="button" id="btn-clear-cust" class="btn-clear-search" onclick="clearCustomer()" title="Clear Selection">&times;</button>
-                                        </div>
-                                        <div id="suggestions-box" class="suggestions-box"></div>
+                                <div class="autocomplete-container">
+                                    <div class="search-wrapper">
+                                        <input type="text" id="cust-search" class="form-control" placeholder="Type name Enter Customer Name..." oninput="handleSearch()" autocomplete="off">
+                                        <button type="button" id="btn-clear-cust" class="btn-clear-search" onclick="clearCustomer()" title="Clear Selection">&times;</button>
                                     </div>
+                                    <div id="suggestions-box" class="suggestions-box"></div>
                                 </div>
 
-                                <div id="customer-info-display" style="display: none; margin-top: 15px; padding: 10px; background-color: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px; font-size: 0.85rem;">
-                                    <strong id="display-cust-name" style="color: #15803d;">CUST-1025 | Maria Clara</strong><br>
-                                    <span id="display-cust-details" style="color: #475569;">0912-345-6789 | Brgy. San Antonio, Biñan</span>
+                                <div id="customer-info-display" style="display: none; margin-top: 15px; padding: 12px; background-color: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
+                                    <strong id="display-cust-name" style="color: #15803d; font-size: 0.95rem;"></strong><br>
+                                    <span id="display-cust-details" style="color: #475569; font-size: 0.85rem; margin-top: 5px; display: block;"></span>
                                 </div>
                             </div>
-                            
                             <div class="action-row" style="margin-top: 0; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
-                                <button type="button" class="btn-pink-sm" onclick="window.location.href='customers.html'">+ Register New</button>
+                                <button type="button" class="btn-pink-sm" onclick="window.location.href='{{ url_for('customer.customers') }}'">+ Register New</button>
                             </div>
                         </div>
 
-                        <div class="pos-section" style="margin-bottom: 15px;">
-                            <h3>2. Fulfillment Method</h3>
+                        <div class="pos-section">
+                            <h3>2. Claiming Method</h3>
                             <div class="form-group" style="margin-bottom: 0;">
-                                <select id="fulfillment-type" class="form-control">
+                                <select id="fulfillment-type" name="fulfillment" class="form-control" onchange="renderBasket()">
                                     <option value="Pickup">Store Walk-in / Pickup</option>
-                                    <option value="Delivery">Schedule Delivery</option>
+                                    <option value="Delivery">Schedule Delivery (+₱60.00)</option>
                                 </select>
-                            </div>
-                        </div>
-
-                        <div class="pos-section" style="margin-bottom: 15px;">
-                            <h3>3. Add Laundry Item</h3>
-                            <div class="form-group">
-                                <label for="svc-field">Service Category</label>
-                                <select id="svc-field" class="form-control">
-                                    <optgroup label="Basic Laundry (Per kg)">
-                                        <option value="50" data-name="Wash Only">Wash Only (₱50.00 / kg)</option>
-                                        <option value="50" data-name="Dry Only">Dry Only (₱50.00 / kg)</option>
-                                        <option value="90" data-name="Wash-Dry-Fold">Wash-Dry-Fold (₱90.00 / kg)</option>
-                                        <option value="120" data-name="Full-Service Laundry">Full-Service Laundry (₱120.00 / kg)</option>
-                                    </optgroup>
-                                    <optgroup label="Bulky & Delicates (Per pc)">
-                                        <option value="250" data-name="Comforter / Blanket">Comforter (₱250.00 / pc)</option>
-                                        <option value="300" data-name="Dry Cleaning (Suit/Gown)">Dry Cleaning (₱300.00 / pc)</option>
-                                        <option value="350" data-name="Shoe Cleaning">Shoe Cleaning (₱350.00 / pc)</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            
-                            <div style="display: flex; gap: 15px;">
-                                <div class="form-group" style="flex: 1;">
-                                    <label for="qty-field">Weight / Qty</label>
-                                    <input type="number" id="qty-field" class="form-control" value="5.0" min="1" step="0.1" onkeypress="return restrictDecimal(event)">
-                                </div>
-                                <div class="form-group" style="flex: 1;">
-                                    <label for="type-field">Unit Type</label>
-                                    <select id="type-field" class="form-control" onchange="handleUnitChange()">
-                                        <option value="kg">Kilograms (kg)</option>
-                                        <option value="pcs">Pieces (pcs)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="action-row">
-                                <button type="button" class="btn-pink-sm" onclick="addMockItem()">+ Add Service</button>
                             </div>
                         </div>
 
                         <div class="pos-section" style="margin-bottom: 0;">
-                            <h3>4. Add-ons & Extra Fees</h3>
+                            <h3>3. Add Laundry Item</h3>
                             <div class="form-group">
-                                <label for="addon-field">Extra Service</label>
-                                <select id="addon-field" class="form-control" onchange="handleAddonUnit()">
-                                    <option value="80" data-name="Rush Service Fee" data-unit="load">Rush Service Fee (₱80.00 / load)</option>
-                                    <option value="25" data-name="Fabric Conditioner" data-unit="load">Fabric Conditioner Add-on (₱25.00 / load)</option>
-                                    <option value="60" data-name="Pickup & Delivery Fee" data-unit="order">Pickup & Delivery Fee (₱60.00 / order)</option>
-                                    <option value="60" data-name="Stain Removal" data-unit="spot">Stain Removal (₱60.00 / spot)</option>
+                                <label for="svc-field">Service Category</label>
+                                <select id="svc-field" class="form-control" onchange="handleUnitChange()">
+                                    <option value="" disabled selected>Choose a service...</option>
+                                    {% for s in services %}
+                                        <option value="{{ s['ServiceID'] }}" 
+                                                data-name="{{ s['ServiceName'] }}" 
+                                                data-rate="{{ s['Rate'] }}" 
+                                                data-unit="{{ s['UnitType'] }}">
+                                            {{ s['ServiceName'] }} (₱{{ "%.2f" | format(s['Rate']) }} / {{ s['UnitType'] }})
+                                        </option>
+                                    {% endfor %}
                                 </select>
                             </div>
 
-                            <div style="display: flex; gap: 15px; align-items: flex-end;">
-                                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                    <label for="addon-qty">Quantity</label>
-                                    <input type="number" id="addon-qty" class="form-control" value="1" min="1" step="1" onkeypress="return restrictAddonDecimal(event)">
+                            <div style="display: flex; gap: 15px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="qty-field">Weight / Qty</label>
+                                    <input type="number" id="qty-field" class="form-control" placeholder="0" min="0.1" step="0.1" onkeypress="return restrictDecimal(event)">
                                 </div>
-                                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                    <label>Unit Basis</label>
-                                    <input type="text" id="addon-unit-display" class="form-control" value="load" disabled style="background-color: #f8fafc; font-weight: bold; color: #64748b;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="type-field">Unit Type</label>
+                                    <input type="text" id="type-field" class="form-control" disabled style="background-color: #f8fafc; font-weight: bold; color: #64748b;" placeholder="e.g. kg / pc">
                                 </div>
-                                <button type="button" class="btn-pink-sm" onclick="addMockAddon()">+ Add Extra</button>
+                            </div>
+
+                            <div class="action-row">
+                                <button type="button" class="btn-pink-sm" onclick="addBasketItem()">+ Add Service</button>
                             </div>
                         </div>
-
                     </div>
 
-                    <div class="receipt-panel">
+                    <div class="receipt-panel" style="flex: 1; display: flex; flex-direction: column; margin: 0; box-sizing: border-box;">
+                        
                         <div class="receipt-header">
                             <h3>ORDER SUMMARY</h3>
                             <span id="receipt-customer-name" style="font-size: 0.85rem; color: #64748b; font-weight: bold;">Customer: None</span>
                         </div>
                         
-                        <div class="receipt-body">
+                        <div class="receipt-body" style="flex: 1; overflow-y: auto;">
                             <table class="receipt-table" id="receiptTable">
                                 <thead>
                                     <tr>
                                         <th>Item Name</th>
-                                        <th>Qty</th>
+                                        <th style="text-align: center;">Qty</th>
                                         <th style="text-align: right;">Subtotal</th>
                                         <th style="text-align: center; width: 40px;"></th>
                                     </tr>
@@ -171,11 +140,11 @@
                                 </tbody>
                             </table>
                         </div>
-
+                        
                         <div class="receipt-footer">
                             <div class="form-group">
                                 <label for="pay-method">Payment Method</label>
-                                <select id="pay-method" class="form-control" onchange="handlePaymentType()">
+                                <select id="pay-method" name="payment_method" class="form-control" onchange="handlePaymentType()">
                                     <option value="Cash" selected>Cash</option>
                                     <option value="GCash">E-Wallet (GCash)</option>
                                     <option value="Card">Credit/Debit Card</option>
@@ -186,7 +155,7 @@
                             <div id="cash-payment-section">
                                 <div class="form-group">
                                     <label for="amount-tendered" style="color: #15803d;">Amount Tendered (₱)</label>
-                                    <input type="number" id="amount-tendered" class="form-control" placeholder="0.00" oninput="calculateChange()">
+                                    <input type="number" id="amount-tendered" name="amount_tendered" class="form-control" placeholder="0.00" oninput="calculateChange()">
                                 </div>
                                 <div class="payment-row">
                                     <span style="font-size: 1rem; color: #475569; font-weight: bold;">Change:</span>
@@ -194,30 +163,33 @@
                                 </div>
                             </div>
 
-                            <div class="payment-row" style="margin-top: 15px;">
+                            <div class="payment-row" id="delivery-fee-row" style="display: none; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                                <span style="font-size: 1rem; color: #475569;">Delivery Fee:</span>
+                                <span style="font-size: 1rem; color: #64748b; font-weight: bold;">₱60.00</span>
+                            </div>
+
+                            <div class="payment-row" style="margin-top: 10px;">
                                 <span style="font-size: 1rem; color: #475569; font-weight: bold;">Grand Total:</span>
                                 <span class="total-lbl" id="grand-total-display">₱0.00</span>
                             </div>
-
+                            
                             <button type="button" class="btn-checkout" onclick="validateAndConfirm()">FINALIZE TRANSACTION</button>
                         </div>
                     </div>
-
                 </form>
             </div>
         </main>
     </div>
 
-    <div id="confirmModal" class="modal-overlay">
+    <div id="confirmModal" class="modal-overlay" style="display: none; z-index: 1050;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Confirm Transaction</h3>
             </div>
-            
             <div class="modal-body">
                 <div class="summary-row">
                     <span class="summary-lbl">Customer Name:</span>
-                    <strong id="conf-customer">Maria Clara</strong>
+                    <strong id="conf-customer">None</strong>
                 </div>
                 <div class="summary-row">
                     <span class="summary-lbl">Fulfillment:</span>
@@ -232,7 +204,6 @@
                     <strong id="conf-total" style="font-size: 1.5rem; color: #df1e6a;">₱0.00</strong>
                 </div>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
                 <button type="button" class="btn-confirm" onclick="processTransaction()">Confirm & Print</button>
@@ -240,16 +211,27 @@
         </div>
     </div>
 
-    <div id="errorModal" class="modal-overlay" style="z-index: 1050;">
+    <div id="successModal" class="modal-overlay" style="display: none; z-index: 1060;">
+        <div class="modal-content" style="width: 350px; text-align: center; padding-top: 30px;">
+            <div style="width: 60px; height: 60px; background-color: #dcfce7; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 15px auto;">
+                ✓
+            </div>
+            <h3 style="color: #10b981; margin-bottom: 10px;">Transaction Successful</h3>
+            <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 25px;">Your order has been recorded and the receipt is ready.</p>
+            <button type="button" class="btn-confirm" style="width: 100%; background-color: #10b981;" onclick="submitFinalForm()">Okay</button>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal-overlay" style="display: none; z-index: 1070;">
         <div class="modal-content" style="width: 350px;">
-            <div class="error-header">
+            <div class="error-header" style="color: #ef4444; margin-bottom: 15px;">
                 <h3>Action Failed</h3>
             </div>
             <div class="error-body">
                 <p id="error-message-text">Error message goes here.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-error-close" onclick="closeErrorModal()">Okay</button>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button type="button" class="btn-cancel" onclick="closeErrorModal()">Okay</button>
             </div>
         </div>
     </div>
@@ -258,35 +240,47 @@
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
 
-        const dummyCustomers = [
-            { id: "CUST-001", name: "Maria Clara", phone: "0912-345-6789", address: "Brgy. San Antonio, Biñan" },
-            { id: "CUST-002", name: "Jazmine Rei Tuazon", phone: "0999-888-7777", address: "PUP Biñan Campus" }
+        let shoppingBasket = [];
+        let currentTotal = 0.00;
+        const DELIVERY_FEE_AMOUNT = 60.00;
+
+        const dbCustomers = [
+            {% for c in customers %}
+            { 
+                id: "{{ c['CustomerID'] }}", 
+                name: "{{ c['FirstName'] }} {{ c['LastName'] }}", 
+                phone: "{{ c['ContactNumber'] if c['ContactNumber'] else 'No Number' }}", 
+                address: "{{ c['Address'] if c['Address'] else 'No Address' }}" 
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
         ];
 
         const searchInput = document.getElementById('cust-search');
         const suggestionsBox = document.getElementById('suggestions-box');
         const clearBtn = document.getElementById('btn-clear-cust');
         const infoDisplay = document.getElementById('customer-info-display');
+        const hiddenId = document.getElementById('hidden-customer-id');
         const receiptName = document.getElementById('receipt-customer-name');
-
-        let isCustomerSelected = false; 
 
         function handleSearch() {
             const query = searchInput.value.toLowerCase();
-            suggestionsBox.innerHTML = ''; 
+            suggestionsBox.innerHTML = '';
 
             if (query.length < 2) {
                 suggestionsBox.style.display = 'none';
                 return;
             }
 
-            const filtered = dummyCustomers.filter(c => c.name.toLowerCase().includes(query) || c.id.toLowerCase().includes(query));
+            const filtered = dbCustomers.filter(c => c.name.toLowerCase().includes(query) || c.id.toLowerCase().includes(query));
 
             if (filtered.length > 0) {
                 filtered.forEach(c => {
                     const div = document.createElement('div');
                     div.className = 'suggestion-item';
-                    div.textContent = `${c.id} | ${c.name}`;
+                    div.innerHTML = `
+                        <span class="suggestion-name">CUST-${c.id} | ${c.name}</span>
+                        <span class="suggestion-details">${c.phone} | ${c.address}</span>
+                    `;
                     div.onclick = () => selectCustomer(c);
                     suggestionsBox.appendChild(div);
                 });
@@ -298,167 +292,138 @@
 
         function selectCustomer(cust) {
             searchInput.value = cust.name;
-            searchInput.disabled = true; 
+            searchInput.disabled = true;
+            hiddenId.value = cust.id;
             suggestionsBox.style.display = 'none';
-            clearBtn.style.display = 'block'; 
+            clearBtn.style.display = 'block';
 
             infoDisplay.style.display = 'block';
-            document.getElementById('display-cust-name').textContent = `${cust.id} | ${cust.name}`;
+            document.getElementById('display-cust-name').textContent = `CUST-${cust.id} | ${cust.name}`;
             document.getElementById('display-cust-details').textContent = `${cust.phone} | ${cust.address}`;
-            receiptName.textContent = `Customer: ${cust.name}`;
-            
-            isCustomerSelected = true; 
+            receiptName.textContent = 'Customer: ' + cust.name;
         }
 
         function clearCustomer() {
             searchInput.value = '';
-            searchInput.disabled = false; 
-            clearBtn.style.display = 'none'; 
+            searchInput.disabled = false;
+            hiddenId.value = '';
+            clearBtn.style.display = 'none';
             infoDisplay.style.display = 'none';
             receiptName.textContent = 'Customer: None';
             searchInput.focus();
-            
-            isCustomerSelected = false; 
         }
 
         function handleUnitChange() {
+            const svcSelect = document.getElementById('svc-field');
+            const unitField = document.getElementById('type-field');
             const qtyInput = document.getElementById('qty-field');
-            const unitType = document.getElementById('type-field').value;
 
-            if (unitType === 'pcs') {
-                qtyInput.step = "1"; 
-                qtyInput.value = Math.floor(qtyInput.value); 
+            if(svcSelect.selectedIndex > 0) {
+                const unit = svcSelect.options[svcSelect.selectedIndex].getAttribute('data-unit');
+                unitField.value = unit;
+                qtyInput.step = (unit.toLowerCase().includes('pc')) ? "1" : "0.1";
             } else {
-                qtyInput.step = "0.1"; 
+                unitField.value = "";
             }
         }
 
         function restrictDecimal(event) {
-            const unitType = document.getElementById('type-field').value;
-            if (unitType === 'pcs' && event.key === '.') {
-                event.preventDefault(); 
+            const unit = document.getElementById('type-field').value.toLowerCase();
+            if (unit.includes('pc') && event.key === '.') {
+                event.preventDefault();
                 return false;
             }
             return true;
         }
 
-        function handleAddonUnit() {
-            const select = document.getElementById('addon-field');
-            const unit = select.options[select.selectedIndex].getAttribute('data-unit');
-            document.getElementById('addon-unit-display').value = unit;
-            document.getElementById('addon-qty').value = 1; 
+        function addBasketItem() {
+            const svcSelect = document.getElementById('svc-field');
+            const qtyInput = document.getElementById('qty-field');
+
+            if (svcSelect.selectedIndex === 0 || !svcSelect.value) {
+                showError("Please select a laundry service category.");
+                return;
+            }
+
+            const qty = parseFloat(qtyInput.value);
+            if (isNaN(qty) || qty <= 0) {
+                showError("Please enter a valid weight or quantity.");
+                return;
+            }
+
+            const option = svcSelect.options[svcSelect.selectedIndex];
+            const srvId = option.value;
+            const name = option.getAttribute('data-name');
+            const rate = parseFloat(option.getAttribute('data-rate'));
+            const unit = option.getAttribute('data-unit');
+            const subtotal = rate * qty;
+
+            shoppingBasket.push({ service_id: srvId, name: name, rate: rate, qty: qty, unit: unit, subtotal: subtotal });
+            
+            svcSelect.selectedIndex = 0;
+            qtyInput.value = "";
+            document.getElementById('type-field').value = "";
+            
+            renderBasket();
         }
 
-        function restrictAddonDecimal(event) {
-            if (event.key === '.') {
-                event.preventDefault(); 
-                return false;
+        function renderBasket() {
+            const tbody = document.querySelector('#receiptTable tbody');
+            tbody.innerHTML = '';
+            currentTotal = 0.00;
+
+            shoppingBasket.forEach((item, index) => {
+                currentTotal += item.subtotal;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <strong>${item.name}</strong><br>
+                        <span style="font-size: 0.8rem; color: #64748b;">₱${item.rate.toFixed(2)} / ${item.unit}</span>
+                    </td>
+                    <td style="text-align: center;">${item.qty}</td>
+                    <td style="text-align: right; font-weight: bold;">₱${item.subtotal.toFixed(2)}</td>
+                    <td style="text-align: center;">
+                        <button type="button" style="background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 1.2rem;" onclick="removeBasketItem(${index})">&times;</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const fulfillment = document.getElementById('fulfillment-type').value;
+            const deliveryRow = document.getElementById('delivery-fee-row');
+            
+            if (fulfillment === 'Delivery' && shoppingBasket.length > 0) {
+                deliveryRow.style.display = 'flex';
+                currentTotal += DELIVERY_FEE_AMOUNT;
+            } else {
+                deliveryRow.style.display = 'none';
             }
-            return true;
+
+            document.getElementById('grand-total-display').textContent = '₱' + currentTotal.toFixed(2);
+            calculateChange();
+        }
+
+        function removeBasketItem(index) {
+            shoppingBasket.splice(index, 1);
+            renderBasket();
         }
 
         function handlePaymentType() {
             const payMethod = document.getElementById('pay-method').value;
             const cashSection = document.getElementById('cash-payment-section');
-            const tenderedInput = document.getElementById('amount-tendered');
-
             if (payMethod === 'Cash') {
                 cashSection.style.display = 'block';
             } else {
                 cashSection.style.display = 'none';
-                tenderedInput.value = ''; 
+                document.getElementById('amount-tendered').value = "";
                 calculateChange();
             }
-        }
-
-        function showError(msg) {
-            document.getElementById('error-message-text').textContent = msg;
-            document.getElementById('errorModal').style.display = 'flex';
-        }
-
-        function closeErrorModal() {
-            document.getElementById('errorModal').style.display = 'none';
-        }
-
-        let currentTotal = 0.00;
-        let rowCount = 0;
-
-        function addMockItem() {
-            const select = document.getElementById('svc-field');
-            const price = parseFloat(select.value);
-            const name = select.options[select.selectedIndex].getAttribute('data-name');
-            const qtyInput = document.getElementById('qty-field');
-            const qty = parseFloat(qtyInput.value);
-            const unit = document.getElementById('type-field').value;
-            
-            if (isNaN(qty) || qty <= 0) {
-                showError("Please enter a valid quantity or weight.");
-                return;
-            }
-
-            const subtotal = price * qty;
-            appendRowToReceipt(name, price, qty, unit, subtotal);
-            qtyInput.value = unit === 'pcs' ? "1" : "5.0";
-        }
-
-        function addMockAddon() {
-            const select = document.getElementById('addon-field');
-            const price = parseFloat(select.value);
-            const name = select.options[select.selectedIndex].getAttribute('data-name');
-            const unit = select.options[select.selectedIndex].getAttribute('data-unit');
-            const qtyInput = document.getElementById('addon-qty');
-            const qty = parseInt(qtyInput.value);
-
-            if (isNaN(qty) || qty <= 0) {
-                showError("Please enter a valid quantity.");
-                return;
-            }
-
-            const subtotal = price * qty;
-            appendRowToReceipt(name, price, qty, unit, subtotal);
-            qtyInput.value = 1;
-        }
-
-        function appendRowToReceipt(name, price, qty, unit, subtotal) {
-            currentTotal += subtotal; 
-            
-            const tbody = document.querySelector('#receiptTable tbody');
-            const tr = document.createElement('tr');
-            tr.id = 'row-' + rowCount;
-            
-            tr.innerHTML = `
-                <td>
-                    <strong>${name}</strong><br>
-                    <span style="font-size: 0.8rem; color: #64748b;">₱${price.toFixed(2)} / ${unit}</span>
-                </td>
-                <td>${qty} ${unit}</td>
-                <td style="text-align: right; font-weight: bold;">₱${subtotal.toFixed(2)}</td>
-                <td style="text-align: center;">
-                    <button type="button" class="item-delete" onclick="removeRow('${tr.id}', ${subtotal})">&times;</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-            rowCount++;
-            updateTotalDisplay();
-        }
-
-        function removeRow(rowId, subtotal) {
-            document.getElementById(rowId).remove();
-            currentTotal -= subtotal;
-            if(currentTotal < 0) currentTotal = 0; 
-            updateTotalDisplay();
-            rowCount--;
-        }
-
-        function updateTotalDisplay() {
-            document.getElementById('grand-total-display').textContent = '₱' + currentTotal.toFixed(2);
-            calculateChange(); 
         }
 
         function calculateChange() {
             const tenderedInput = document.getElementById('amount-tendered').value;
             const changeDisplay = document.getElementById('change-display');
-            
+
             if (tenderedInput === "" || currentTotal === 0) {
                 changeDisplay.textContent = "₱0.00";
                 changeDisplay.style.color = "#94a3b8";
@@ -470,53 +435,64 @@
 
             if (change < 0) {
                 changeDisplay.textContent = "Insufficient!";
-                changeDisplay.style.color = "#ef4444"; 
+                changeDisplay.style.color = "#ef4444";
             } else {
                 changeDisplay.textContent = "₱" + change.toFixed(2);
-                changeDisplay.style.color = "#10b981"; 
+                changeDisplay.style.color = "#10b981";
             }
         }
 
+        function showError(msg) {
+            document.getElementById('error-message-text').textContent = msg;
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+        function closeErrorModal() {
+            document.getElementById('errorModal').style.display = 'none';
+        }
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
         function validateAndConfirm() {
-            if (!isCustomerSelected) {
-                showError("Please search and select a customer first before finalizing the transaction.");
+            const custId = document.getElementById('hidden-customer-id').value;
+            
+            if (!custId) {
+                showError("Please search and select a valid registered customer from the list.");
                 return;
             }
 
-            if (currentTotal <= 0) {
-                showError("Order Summary is empty. Please add at least one laundry service or add-on.");
+            if (shoppingBasket.length === 0) {
+                showError("Order Summary is empty. Please add at least one laundry service.");
                 return;
             }
 
             const payMethod = document.getElementById('pay-method');
-            const selectedPaymentText = payMethod.options[payMethod.selectedIndex].text; 
-            
             if (payMethod.value === 'Cash') {
-                const tenderedValue = document.getElementById('amount-tendered').value;
-                const tendered = parseFloat(tenderedValue);
+                const tendered = parseFloat(document.getElementById('amount-tendered').value);
                 if (isNaN(tendered) || tendered < currentTotal) {
                     showError("Insufficient cash tendered. Please input the correct amount.");
                     return;
                 }
             }
 
-            const fulfillmentSelect = document.getElementById('fulfillment-type');
+            const fulfillType = document.getElementById('fulfillment-type');
             
-            document.getElementById('conf-customer').textContent = searchInput.value;
-            document.getElementById('conf-fulfillment').textContent = fulfillmentSelect.options[fulfillmentSelect.selectedIndex].text;
-            document.getElementById('conf-payment').textContent = selectedPaymentText;
+            document.getElementById('conf-customer').textContent = document.getElementById('cust-search').value;
+            document.getElementById('conf-fulfillment').textContent = fulfillType.options[fulfillType.selectedIndex].text;
+            document.getElementById('conf-payment').textContent = payMethod.options[payMethod.selectedIndex].text;
             document.getElementById('conf-total').textContent = '₱' + currentTotal.toFixed(2);
 
             document.getElementById('confirmModal').style.display = 'flex';
         }
 
-        function closeConfirmModal() {
+        function processTransaction() {
+            document.getElementById('basket-data-input').value = JSON.stringify(shoppingBasket);
             document.getElementById('confirmModal').style.display = 'none';
+            document.getElementById('successModal').style.display = 'flex';
         }
 
-        function processTransaction() {
-            alert("Transaction Successfully Finalized! Printing Receipt...");
-            window.location.reload(); 
+        function submitFinalForm() {
+            document.getElementById('posForm').submit();
         }
     </script>
 </body>

@@ -3,49 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Active Orders - Laundrify</title>
-    <link rel="stylesheet" href="../static/dashboard-style.css">
-    <link rel="stylesheet" href="../static/queue.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='queue.css') }}">
 </head>
 <body>
     <header class="top-navbar">
         <div class="brand-wrapper">
-            <img src="../static/images/laundrify_logo.png" alt="Logo" class="nav-logo-img">
+            <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img">
             <div class="logo-text">LAUNDRIFY</div>
         </div>
-        
         <div class="date-display" id="liveDate">Loading date...</div>
     </header>
     
     <div class="app-frame">
         <aside class="sidebar-nav">
-            <a href="dashboard.html" class="nav-link">
-                <img src="../static/images/dashboard.png" class="nav-icon" alt="">Dashboard</a>
-            <a href="order.html" class="nav-link">
-                <img src="../static/images/order.png" class="nav-icon" alt="">Create Order</a>
-            <a href="queue.html" class="nav-link active">
-                <img src="../static/images/queue.png" class="nav-icon" alt="">Active Orders</a>
-            <a href="customers.html" class="nav-link">
-                <img src="../static/images/customer.png" class="nav-icon" alt="">Customers</a>
-            <a href="services.html" class="nav-link">
-                <img src="../static/images/services.png" class="nav-icon" alt="">Services</a>
-            <a href="payments.html" class="nav-link">
-                <img src="../static/images/history.png" class="nav-icon" alt="">Transactions</a>
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+            <a href="{{ url_for('order.pos') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">Point of Sale</a>
+            <a href="{{ url_for('queue.active_orders') }}" class="nav-link active">
+                <img src="{{ url_for('static', filename='images/queue.png') }}" class="nav-icon" alt="">Active Orders</a>
+            <a href="{{ url_for('customer.customers') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/customer.png') }}" class="nav-icon" alt="">Customers</a>
+            <a href="{{ url_for('service.services') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/services.png') }}" class="nav-icon" alt="">Services</a>
+            <a href="{{ url_for('history.transaction_history') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Transactions</a>
 
             <div class="logout-anchor">
-                <a href="login.html" class="nav-link logout-btn">
-                    <img src="../static/images/logout.png" class="nav-icon" alt="">Log Out</a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
             </div>
         </aside>
 
         <main class="workspace">
             <div id="view-orders-list" class="view-panel active-view">
-                
                 <div class="dashboard-header">
                     <h1 style="margin: 0;">Active Order Status Tracker</h1>
                     <div class="dashboard-staff-info">
                         <img src="../static/images/user.png" alt="Staff Icon">
-                        <span>Staff Counter: <strong style="color: var(--brand-dark);">Juan Dela Cruz</strong></span>
-                    </div>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>                    </div>
                 </div>
                 
                 <div class="ui-card">
@@ -59,11 +56,12 @@
                                 <option value="processing">Processing</option>
                                 <option value="ready">Ready for Pickup</option>
                                 <option value="claimed">Claimed (Completed)</option>
+                                <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
                         
                         <div id="activeCount" style="font-size: 0.9rem; color: #64748b;">
-                            Showing <strong>2</strong> active orders
+                            Showing <strong>...</strong> active orders
                         </div>
                     </div>
 
@@ -72,63 +70,75 @@
                             <tr>
                                 <th>Order ID</th>
                                 <th>Customer</th>
-                                <th>Date Received</th>
+                                <th>Order Date</th>
                                 <th>Total Amount</th>
-                                <th>Payment</th>
+                                <th>Claiming</th>
                                 <th>Order Status</th>
                                 <th style="text-align: center;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {% for order in orders %}
                             <tr>
-                                <td><strong>ORD-1024</strong></td>
+                                <td><strong>ORD-{{ "%03d" | format(order['OrderID']) }}</strong></td>
                                 <td>
-                                    Maria Clara<br>
-                                    <span style="font-size: 0.75rem; color: #94a3b8;">CUST-001</span>
+                                    {{ order['FirstName'] }} {{ order['LastName'] }}<br>
+                                    <span style="font-size: 0.75rem; color: #94a3b8;">CUST-{{ "%03d" | format(order['CustomerID'] if order['CustomerID'] else 0) }}</span>
                                 </td>
-                                <td>May 23, 2026<br><span style="font-size: 0.75rem; color: #94a3b8;">10:30 AM</span></td>
-                                <td>₱250.00</td>
-                                <td><span class="status-badge status-unpaid">Unpaid</span></td>
+                                <td>{{ order['OrderDate'] }}</td>
+                                <td>₱{{ "%.2f" | format(order['TotalAmount']) }}</td>
+                                <td style="font-weight: 500; color: #334155;">{{ order['ClaimingMethod'] }}</td>
+                                
                                 <td>
-                                    <select class="status-select status-processing" onchange="updateRowColor(this); filterOrders();">
-                                        <option value="pending">Pending</option>
-                                        <option value="processing" selected>Processing</option>
-                                        <option value="ready">Ready</option>
-                                        <option value="claimed">Claimed</option>
-                                    </select>
+                                    {% if order['OrderStatus'] == 'Cancelled' %}
+                                        <select disabled class="select-locked-cancelled"><option>Cancelled</option></select>
+                                    {% elif order['OrderStatus'] == 'Claimed' %}
+                                        <select disabled class="select-locked-claimed"><option>Claimed</option></select>
+                                    {% else %}
+                                        <select class="status-select status-{{ order['OrderStatus'] | lower }}" onchange="updateOrderStatus(this, {{ order['OrderID'] }})">
+                                            {% if order['OrderStatus'] == 'Pending' %}
+                                                <option value="pending" selected>Pending</option>
+                                                <option value="processing">Processing</option>
+                                                <option value="ready">Ready</option>
+                                                <option value="claimed">Claimed</option>
+                                            {% elif order['OrderStatus'] == 'Processing' %}
+                                                <option value="processing" selected>Processing</option>
+                                                <option value="ready">Ready</option>
+                                                <option value="claimed">Claimed</option>
+                                            {% elif order['OrderStatus'] == 'Ready' %}
+                                                <option value="ready" selected>Ready</option>
+                                                <option value="claimed">Claimed</option>
+                                            {% endif %}
+                                        </select>
+                                    {% endif %}
                                 </td>
+                                
                                 <td>
-                                    <div class="action-btn-group">
-                                        <button class="btn-action-sm" onclick="openDetailsModal('ORD-1024', 'Maria Clara', 'Wash-Dry-Fold', '5.0 kg', '₱250.00')">View Details</button>
-                                        <button class="btn-action-sm btn-print" onclick="openReceiptModal('ORD-1024', 'Maria Clara', 'Wash-Dry-Fold', '250.00')">Print Receipt</button>
+                                    <div class="action-btn-group" style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+                                        
+                                        <script type="application/json" id="items-{{ order['OrderID'] }}">{{ order['items_json'] | safe }}</script>
+                                        
+                                        <button class="btn-action-sm" style="padding: 5px 10px; cursor:pointer;" 
+                                                onclick="openDetailsModal({{ order['OrderID'] }}, '{{ order['FirstName'] }} {{ order['LastName'] }}', '₱{{ '%.2f' | format(order['TotalAmount']) }}')">View</button>
+                                                
+                                        <button class="btn-action-sm btn-print" style="padding: 5px 10px; cursor:pointer;" 
+                                                onclick="openReceiptModal({{ order['OrderID'] }}, '{{ order['FirstName'] }} {{ order['LastName'] }}', '{{ '%.2f' | format(order['TotalAmount']) }}')">Print</button>
+                                        
+                                        {% if order['OrderStatus'] == 'Pending' %}
+                                        <form id="cancel-form-{{ order['OrderID'] }}" action="{{ url_for('queue.cancel_order', order_id=order['OrderID']) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to cancel this order? This action cannot be undone.');">
+                                            <button type="submit" style="background: white; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Cancel</button>
+                                        </form>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
-
+                            {% else %}
                             <tr>
-                                <td><strong>ORD-1023</strong></td>
-                                <td>
-                                    Jazmine Rei Tuazon<br>
-                                    <span style="font-size: 0.75rem; color: #94a3b8;">CUST-002</span>
-                                </td>
-                                <td>May 22, 2026<br><span style="font-size: 0.75rem; color: #94a3b8;">02:15 PM</span></td>
-                                <td>₱120.00</td>
-                                <td><span class="status-badge status-paid">Paid</span></td>
-                                <td>
-                                    <select class="status-select status-ready" onchange="updateRowColor(this); filterOrders();">
-                                        <option value="pending">Pending</option>
-                                        <option value="processing">Processing</option>
-                                        <option value="ready" selected>Ready</option>
-                                        <option value="claimed">Claimed</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <div class="action-btn-group">
-                                        <button class="btn-action-sm" onclick="openDetailsModal('ORD-1023', 'Jazmine Rei Tuazon', 'Dry Cleaning', '1.0 pc', '₱120.00')">View Details</button>
-                                        <button class="btn-action-sm btn-print" onclick="openReceiptModal('ORD-1023', 'Jazmine Rei Tuazon', 'Dry Cleaning', '120.00')">Print Receipt</button>
-                                    </div>
+                                <td colspan="7" style="text-align: center; padding: 30px; color: #94a3b8;">
+                                    No active orders found in the database.
                                 </td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -154,13 +164,8 @@
                             <th style="text-align: right;">Amount</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td id="det-service">---</td>
-                            <td id="det-qty">---</td>
-                            <td id="det-price" style="text-align: right; font-weight: bold;">---</td>
-                        </tr>
-                    </tbody>
+                    <tbody id="det-tbody">
+                        </tbody>
                 </table>
             </div>
             <div class="modal-footer">
@@ -176,13 +181,10 @@
                 <button class="close-btn" onclick="closeReceiptModal()">&times;</button>
             </div>
             <div class="receipt-wrapper">
-                
                 <div class="thermal-paper" id="printable-area">
                     <h2>LAUNDRIFY</h2>
                     <p>Brgy. San Antonio, Biñan<br>Tel: 0912-345-6789</p>
-                    
                     <div class="receipt-divider"></div>
-                    
                     <div class="receipt-row">
                         <span>Order ID:</span>
                         <span id="rec-id">---</span>
@@ -191,29 +193,22 @@
                         <span>Customer:</span>
                         <span id="rec-name">---</span>
                     </div>
-                    
                     <div class="receipt-divider"></div>
-                    
                     <div class="receipt-row" style="font-weight: bold;">
-                        <span>Item</span>
+                        <span>Item (Qty/Wt)</span>
                         <span>Amount</span>
                     </div>
-                    <div class="receipt-row">
-                        <span id="rec-service">---</span>
-                        <span id="rec-price">---</span>
-                    </div>
+                    
+                    <div id="rec-dynamic-items"></div>
                     
                     <div class="receipt-divider"></div>
-                    
                     <div class="receipt-row" style="font-size: 1rem; font-weight: bold;">
                         <span>TOTAL:</span>
                         <span>₱<span id="rec-total">0.00</span></span>
                     </div>
-                    
                     <div class="receipt-divider"></div>
                     <p style="margin-top: 15px;">Thank you for trusting Laundrify!<br>Please present this receipt upon claiming.</p>
                 </div>
-
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
                 <button class="btn-close-solid" onclick="closeReceiptModal()">Cancel</button>
@@ -227,28 +222,46 @@
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
 
         function updateRowColor(selectElement) {
-            selectElement.classList.remove('status-pending', 'status-processing', 'status-ready', 'status-claimed');
+            selectElement.classList.remove('status-pending', 'status-processing', 'status-ready');
             selectElement.classList.add('status-' + selectElement.value);
         }
 
-        document.querySelectorAll('.status-select').forEach(select => {
-            select.addEventListener('change', function() {
-                updateRowColor(this);
-            });
-        });
+        function updateOrderStatus(selectElement, orderId) {
+            updateRowColor(selectElement);
+            const cancelForm = document.getElementById('cancel-form-' + orderId);
+            if (cancelForm) cancelForm.style.display = 'none';
+
+            const capitalizedStatus = selectElement.value.charAt(0).toUpperCase() + selectElement.value.slice(1);
+            fetch(`/update_status/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `status=${capitalizedStatus}`
+            }).then(() => {
+                if (capitalizedStatus === 'Claimed') window.location.reload();
+                else filterOrders();
+            }).catch(error => console.error('Error:', error));
+        }
+
+        document.querySelectorAll('.status-select').forEach(select => updateRowColor(select));
 
         function filterOrders() {
             const searchInput = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
             const tableRows = document.querySelectorAll('#ordersTable tbody tr');
-            
             let visibleCount = 0;
 
             tableRows.forEach(row => {
+                if(row.children.length === 1) return; 
                 const rowText = row.textContent.toLowerCase();
-                const rowStatus = row.querySelector('.status-select').value;
+                let rowStatus = '';
+                const activeSelect = row.querySelector('.status-select');
+                const lockedSelect = row.querySelector('.select-locked-cancelled, .select-locked-claimed');
+                
+                if (activeSelect) rowStatus = activeSelect.value.toLowerCase();
+                else if (lockedSelect) rowStatus = lockedSelect.textContent.trim().toLowerCase();
+                
                 const matchesSearch = rowText.includes(searchInput);
-                const matchesStatus = (statusFilter === 'all') || (rowStatus === statusFilter);
+                let matchesStatus = (statusFilter === 'all') ? (rowStatus !== 'claimed' && rowStatus !== 'cancelled') : (rowStatus === statusFilter);
 
                 if (matchesSearch && matchesStatus) {
                     row.style.display = '';
@@ -257,16 +270,28 @@
                     row.style.display = 'none';
                 }
             });
-
             document.getElementById('activeCount').innerHTML = `Showing <strong>${visibleCount}</strong> active orders`;
         }
+        window.onload = filterOrders;
 
-        function openDetailsModal(id, name, service, qty, price) {
-            document.getElementById('det-id').textContent = id;
+        function openDetailsModal(orderId, name, totalAmount) {
+            const formattedId = 'ORD-' + String(orderId).padStart(4, '0');
+            document.getElementById('det-id').textContent = formattedId;
             document.getElementById('det-name').textContent = name;
-            document.getElementById('det-service').textContent = service;
-            document.getElementById('det-qty').textContent = qty;
-            document.getElementById('det-price').textContent = price;
+            
+            const itemsData = JSON.parse(document.getElementById('items-' + orderId).textContent);
+            const tbody = document.getElementById('det-tbody');
+            tbody.innerHTML = ''; 
+            
+            itemsData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.service}</td>
+                    <td>${item.qty}</td>
+                    <td style="text-align: right; font-weight: bold;">₱${item.subtotal.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
             
             document.getElementById('detailsModal').style.display = 'flex';
         }
@@ -275,12 +300,25 @@
             document.getElementById('detailsModal').style.display = 'none';
         }
 
-        function openReceiptModal(id, name, service, price) {
-            document.getElementById('rec-id').textContent = id;
+        function openReceiptModal(orderId, name, totalAmount) {
+            const formattedId = 'ORD-' + String(orderId).padStart(4, '0');
+            document.getElementById('rec-id').textContent = formattedId;
             document.getElementById('rec-name').textContent = name;
-            document.getElementById('rec-service').textContent = service;
-            document.getElementById('rec-price').textContent = price;
-            document.getElementById('rec-total').textContent = price;
+            document.getElementById('rec-total').textContent = totalAmount;
+            
+            const itemsData = JSON.parse(document.getElementById('items-' + orderId).textContent);
+            const container = document.getElementById('rec-dynamic-items');
+            container.innerHTML = ''; 
+            
+            itemsData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'receipt-row';
+                div.innerHTML = `
+                    <span>${item.service} (${item.qty})</span>
+                    <span>${item.subtotal.toFixed(2)}</span>
+                `;
+                container.appendChild(div);
+            });
             
             document.getElementById('receiptModal').style.display = 'flex';
         }
@@ -292,10 +330,8 @@
         function triggerPrint() {
             const printContent = document.getElementById('printable-area').innerHTML;
             const originalContent = document.body.innerHTML;
-
             document.body.innerHTML = `<div style="display:flex; justify-content:center; margin-top:50px;">${printContent}</div>`;
             window.print();
-
             document.body.innerHTML = originalContent;
             window.location.reload(); 
         }

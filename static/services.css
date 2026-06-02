@@ -43,3 +43,32 @@
     flex: 1;
     overflow-y: auto;
 }
+
+:root {
+--theme-pink: #db2777; 
+--theme-pink-light: #fdf2f8; 
+--theme-pink-border: #fbcfe8; 
+}
+
+.filter-card { background: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--theme-pink-border); border-left: 5px solid var(--theme-pink); box-shadow: 0 2px 4px rgba(219, 39, 119, 0.05); }
+.date-form { display: flex; gap: 15px; align-items: center; }
+.date-input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; color: #334155; outline: none; }
+.date-input:focus { border-color: var(--theme-pink); }
+.btn-pink { background-color: var(--theme-pink); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+.btn-pink:hover { background-color: #be185d; }
+
+.top-cards-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 20px; }
+.card-stat { background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; border-top: 4px solid var(--theme-pink); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.card-stat h3 { margin: 0 0 10px 0; color: #64748b; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.report-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.report-section { background: white; border-radius: 8px; border: 1px solid var(--theme-pink-border); box-shadow: 0 2px 8px rgba(219, 39, 119, 0.04); overflow: hidden; }
+.report-section h3 { margin: 0; background-color: var(--theme-pink-light); color: var(--theme-pink); padding: 15px 20px; font-size: 1.05rem; border-bottom: 1px solid var(--theme-pink-border); }
+.report-content { padding: 20px; }
+
+.mini-stat { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; }
+.mini-stat:last-child { border-bottom: none; }
+.stat-label { color: #64748b; font-weight: 500; }
+.stat-value { font-weight: 700; color: #0f172a; }
+
+.chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; align-items: center; }

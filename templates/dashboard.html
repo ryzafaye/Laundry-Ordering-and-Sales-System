@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../static/dashboard-style.css">
-    <title>Dashboard-Laundrify</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}">
+    <title>Dashboard - Laundrify</title>
 </head>
 <body>
     <header class="top-navbar">
         <div class="brand-wrapper">
-            <img src="../static/images/laundrify_logo.png" alt="Logo" class="nav-logo-img">
+            <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img">
             <div class="logo-text">LAUNDRIFY</div>
         </div>
         <div class="date-display" id="liveDate">Loading date...</div>
@@ -16,22 +16,22 @@
     
     <div class="app-frame">
         <aside class="sidebar-nav">
-            <a href="dashboard.html" class="nav-link active">
-                <img src="../static/images/dashboard.png" class="nav-icon" alt="">Dashboard</a>
-            <a href="order.html" class="nav-link">
-                <img src="../static/images/order.png" class="nav-icon" alt="">Create Order</a>
-            <a href="queue.html" class="nav-link">
-                <img src="../static/images/queue.png" class="nav-icon" alt="">Active Orders</a>
-            <a href="customers.html" class="nav-link">
-                <img src="../static/images/customer.png" class="nav-icon" alt="">Customers</a>
-            <a href="services.html" class="nav-link">
-                <img src="../static/images/services.png" class="nav-icon" alt="">Services</a>
-            <a href="payments.html" class="nav-link">
-                <img src="../static/images/history.png" class="nav-icon" alt="">Transactions</a>
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link active">
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+            <a href="{{ url_for('order.pos') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">Point of Sale</a>
+            <a href="{{ url_for('queue.active_orders') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/queue.png') }}" class="nav-icon" alt="">Active Orders</a>
+            <a href="{{ url_for('customer.customers') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/customer.png') }}" class="nav-icon" alt="">Customers</a>
+            <a href="{{ url_for('service.services') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/services.png') }}" class="nav-icon" alt="">Price List</a>
+            <a href="{{ url_for('history.transaction_history') }}" class="nav-link">
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Sales & Reports</a>
 
             <div class="logout-anchor">
-                <a href="login.html" class="nav-link logout-btn">
-                    <img src="../static/images/logout.png" class="nav-icon" alt="">Log Out</a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
             </div>
         </aside>
 
@@ -41,37 +41,35 @@
                 <div class="dashboard-header">
                     <h1>System Dashboard Overview</h1>
                     <div class="dashboard-staff-info">
-                        <img src="../static/images/user.png" alt="Staff Icon">
-                        <span>Staff Counter: <strong style="color: var(--brand-dark);">Juan Dela Cruz</strong></span>
+                        <img src="{{ url_for('static', filename='images/user.png') }}" alt="User Icon">
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name', 'Active User') }} ({{ session.get('position', 'Staff') }})</strong></span>
                     </div>
                 </div>
                 
                 <div class="dashboard-grid">
                     <div class="ui-card" style="border-top: 4px solid var(--brand-primary);">
                         <h3>Today's Sales</h3>
-                        <p class="metric-display">₱14,250.00</p>
-                        <p class="metric-subtext" style="color: var(--success);">↑ 12% vs yesterday</p>
+                        <p class="metric-display">₱{{ "%.2f" | format(today_sales) }}</p>
+                        <p class="metric-subtext" style="color: var(--success);">Collected today</p>
                     </div>
                     <div class="ui-card" style="border-top: 4px solid var(--warning);">
                         <h3>Washing</h3>
-                        <p class="metric-display">12 Orders</p>
+                        <p class="metric-display">{{ washing_count }} Orders</p>
                         <p class="metric-subtext">Currently in progress</p>
                     </div>
                     <div class="ui-card" style="border-top: 4px solid var(--info);">
                         <h3>Pickup</h3>
-                        <p class="metric-display">8 Batches</p>
+                        <p class="metric-display">{{ pickup_count }} Batches</p>
                         <p class="metric-subtext">Ready for claiming</p>
                     </div>
-                    
                     <div class="ui-card" style="border-top: 4px solid var(--delivery);">
                         <h3>Delivery</h3>
-                        <p class="metric-display">5 Orders</p>
-                        <p class="metric-subtext">Scheduled drop-offs today</p>
+                        <p class="metric-display">{{ delivery_count }} Orders</p>
+                        <p class="metric-subtext">Active drop-offs</p>
                     </div>
-
                     <div class="ui-card" style="border-top: 4px solid var(--success);">
                         <h3>Completed</h3>
-                        <p class="metric-display">42 Orders</p>
+                        <p class="metric-display">{{ completed_count }} Orders</p>
                         <p class="metric-subtext">Fully paid & released</p>
                     </div>
                 </div>
@@ -79,16 +77,9 @@
                 <div class="feature-split-grid">
                     
                     <div class="ui-card">
-                        <h3>Real-Time Monitoring Status</h3>
-                        
-                        <div class="search-container" style="margin-top: 15px;">
-                            <input type="text" class="search-input" placeholder="Search orders...">
-                            <select class="filter-select">
-                                <option value="all">Filter By: All</option>
-                                <option value="order_id">Order ID</option>
-                                <option value="customer">Customer</option>
-                            </select>
-                            <button class="btn-ui btn-primary" style="width: auto; padding: 8px 16px; margin: 0;">Search</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0;">Real-Time Monitoring (10)</h3>
+                            <button class="btn-ui btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="window.location.href='{{ url_for('queue.active_orders') }}'">View All</button>
                         </div>
 
                         <table class="basket-table">
@@ -103,36 +94,20 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for order in recent_orders %}
                                 <tr>
-                                    <td><strong>ORD-1025</strong></td>
-                                    <td>Arabella Andal</td>
-                                    <td>Wash-Dry-Fold</td>
-                                    <td>₱175.00</td>
-                                    <td><span class="status-badge status-unpaid">Unpaid</span></td>
-                                    <td>
-                                        <select class="status-select status-processing">
-                                            <option value="pending">Pending</option>
-                                            <option value="processing" selected>Processing</option>
-                                            <option value="ready">Ready</option>
-                                            <option value="claimed">Claimed</option>
-                                        </select>
-                                    </td>
+                                    <td><strong>ORD-{{ "%03d" | format(order['OrderID']) }}</strong></td>
+                                    <td>{{ order['CustomerName'] }}</td>
+                                    <td style="font-size: 0.85rem; color: #475569;">{{ order['Services'] }}</td>
+                                    <td style="font-weight: bold;">₱{{ "%.2f" | format(order['TotalAmount']) }}</td>
+                                    <td><span class="badge-status status-{{ order['PaymentStatus'] | lower }}">{{ order['PaymentStatus'] }}</span></td>
+                                    <td><span class="badge-status status-{{ order['OrderStatus'] | lower }}">{{ order['OrderStatus'] }}</span></td>
                                 </tr>
+                                {% else %}
                                 <tr>
-                                    <td><strong>ORD-1026</strong></td>
-                                    <td>Jazmine Tuazon</td>
-                                    <td>Dry Cleaning</td>
-                                    <td>₱300.00</td>
-                                    <td><span class="status-badge status-paid">Paid</span></td>
-                                    <td>
-                                        <select class="status-select status-ready">
-                                            <option value="pending">Pending</option>
-                                            <option value="processing">Processing</option>
-                                            <option value="ready" selected>Ready</option>
-                                            <option value="claimed">Claimed</option>
-                                        </select>
-                                    </td>
+                                    <td colspan="6" style="text-align: center; padding: 20px; color: #94a3b8;">No active orders currently.</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -142,16 +117,16 @@
                         <div class="ui-card" style="margin-bottom: 0;">
                             <h3>Quick Actions</h3>
                             <div class="modern-quick-actions-container">
-                                <button class="quick-action-tile" onclick="window.location.href='order.html'">
-                                    <img src="../static/images/order.png" alt="Order">
+                                <button class="quick-action-tile" onclick="window.location.href='{{ url_for('order.pos') }}'">
+                                    <img src="{{ url_for('static', filename='images/order.png') }}" alt="Order">
                                     New Order
                                 </button>
-                                <button class="quick-action-tile" onclick="window.location.href='payments.html'">
-                                    <img src="../static/images/history.png" alt="Payment">
+                                <button class="quick-action-tile" onclick="window.location.href='{{ url_for('history.transaction_history') }}'">
+                                    <img src="{{ url_for('static', filename='images/history.png') }}" alt="Payment">
                                     Transactions
                                 </button>
-                                <button class="quick-action-tile" onclick="window.location.href='customers.html'">
-                                    <img src="../static/images/customer.png" alt="Client">
+                                <button class="quick-action-tile" onclick="window.location.href='{{ url_for('customer.customers') }}'">
+                                    <img src="{{ url_for('static', filename='images/customer.png') }}" alt="Client">
                                     Add Customer
                                 </button>
                             </div>
@@ -163,23 +138,23 @@
                                 <div class="machine-status-row">
                                     <div>
                                         <strong>Cash in Drawer</strong><br>
-                                        <small style="color: var(--text-muted);">Physical payments</small>
+                                        <small style="color: var(--text-muted);">Physical payments today</small>
                                     </div>
-                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--success);">₱2,150.00</div>
+                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--success);">₱{{ "%.2f" | format(cash_sales) }}</div>
                                 </div>
                                 <div class="machine-status-row">
                                     <div>
                                         <strong>Card / Online Payment</strong><br>
-                                        <small style="color: var(--text-muted);">Digital transfers</small>
+                                        <small style="color: var(--text-muted);">Digital transfers today</small>
                                     </div>
-                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--info);">₱1,100.00</div>
+                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--info);">₱{{ "%.2f" | format(online_sales) }}</div>
                                 </div>
                                 <div class="machine-status-row" style="border: none; padding-bottom: 0;">
                                     <div>
                                         <strong>Collectibles</strong><br>
-                                        <small style="color: var(--text-muted);">Unpaid order</small>
+                                        <small style="color: var(--text-muted);">Total unpaid orders</small>
                                     </div>
-                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--warning);">₱450.00</div>
+                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--warning);">₱{{ "%.2f" | format(collectibles) }}</div>
                                 </div>
                             </div>
                         </div>
@@ -191,14 +166,6 @@
     </div>
 
     <script>
-        document.querySelectorAll('.status-select').forEach(select => {
-            select.addEventListener('change', function() {
-                this.classList.remove('status-pending', 'status-processing', 'status-ready', 'status-claimed');
-                this.classList.add('status-' + this.value);
-            });
-        });
-
-        // JS para sa Live Date
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
     </script>

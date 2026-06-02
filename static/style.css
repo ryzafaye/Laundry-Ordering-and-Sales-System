@@ -92,7 +92,6 @@ body {
     margin-bottom: 30px;
 }
 
-/* Input Controls Framework */
 .form-element {
     margin-bottom: 20px;
 }
@@ -123,30 +122,32 @@ body {
     box-shadow: 0 0 0 3px rgba(223, 30, 106, 0.1);
 }
 
-.form-options {
+.password-wrapper {
+    position: relative;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    font-size: 0.85rem;
 }
 
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #4a5568;
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px; 
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
     cursor: pointer;
+    color: #64748b;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.forgot-pass {
-    color: #df1e6a;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.forgot-pass:hover {
-    text-decoration: underline;
+.toggle-password:hover {
+    color: #df1e6a; 
 }
 
 .btn-ui {
