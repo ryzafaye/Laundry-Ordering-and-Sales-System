@@ -229,7 +229,12 @@
                 labels: ['Today', 'This Week', 'This Month', 'This Year'],
                 datasets: [{
                     label: 'Revenue (₱)',
-                    data: [{{ sales_today }}, {{ sales_week }}, {{ sales_month }}, {{ sales_year }}],
+                    data: [
+                    Number('{{ sales_today }}'), 
+                    Number('{{ sales_week }}'), 
+                    Number('{{ sales_month }}'), 
+                    Number('{{ sales_year }}')
+                    ],
                     backgroundColor: '#db2777',
                     borderRadius: 4
                 }]

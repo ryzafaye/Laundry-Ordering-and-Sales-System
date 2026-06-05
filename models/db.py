@@ -19,6 +19,7 @@ def create_tables():
         "Password"  TEXT NOT NULL,
         "Position"  TEXT NOT NULL,
         "ContactNumber" TEXT NOT NULL,
+        "Status"    TEXT DEFAULT 'Active',
         "DateCreated"   TEXT DEFAULT CURRENT_DATE,
         PRIMARY KEY("EmpID" AUTOINCREMENT)
         )
@@ -48,7 +49,7 @@ def create_tables():
         cursor.execute("""
             INSERT INTO "EMPLOYEES" ("FirstName", "LastName", "Password", "Position", "ContactNumber")
             VALUES (?, ?, ?, ?, ?)
-        """, ("Arabella", "Andal", "staff123", "Staff", "09987654321"))
+        """, ("System", "Staff", "staff123", "Staff", "09987654321"))
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "SERVICES" (

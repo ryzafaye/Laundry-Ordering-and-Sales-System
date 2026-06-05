@@ -147,7 +147,7 @@
                                 <label for="pay-method">Payment Method</label>
                                 <select id="pay-method" name="payment_method" class="form-control" onchange="handlePaymentType()">
                                     <option value="Cash" selected>Cash</option>
-                                    <option value="GCash">E-Wallet (GCash)</option>
+                                    <option value="E-Wallet">E-Wallet</option>
                                     <option value="Card">Credit/Debit Card</option>
                                     <option value="Unpaid">Pay Later (Collectibles)</option>
                                 </select>
@@ -207,7 +207,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
-                <button type="button" class="btn-confirm" onclick="processTransaction()">Confirm & Print</button>
+                <button type="button" class="btn-confirm" onclick="processTransaction()">Confirm</button>
             </div>
         </div>
     </div>

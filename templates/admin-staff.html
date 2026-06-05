@@ -25,7 +25,7 @@
             <a href="{{ url_for('admin.all_orders') }}" class="nav-link">
                 <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">All Orders</a>
             <a href="{{ url_for('admin.financial_reports') }}" class="nav-link">
-                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Financial Reports</a>
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Reports</a>
             <a href="{{ url_for('admin.system_settings') }}" class="nav-link">
                 <img src="{{ url_for('static', filename='images/settings.png') }}" class="nav-icon" alt="">Settings</a>
                 
@@ -48,10 +48,13 @@
 
                 {% with messages = get_flashed_messages(with_categories=true) %}
                   {% if messages %}
+                    <style>
+                        .flash-base { padding: 10px; border-radius: 6px; margin-top: 15px; text-align: center; font-size: 0.9em; }
+                        .flash-error { background-color: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+                        .flash-success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+                    </style>
                     {% for category, message in messages %}
-                      <div style="padding: 10px; border-radius: 6px; margin-top: 15px; text-align: center; font-size: 0.9em; 
-                          {% if category == 'error' %}background-color: #fef2f2; color: #ef4444; border: 1px solid #fee2e2;
-                          {% else %}background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0;{% endif %}">
+                      <div class="flash-base {% if category == 'error' %}flash-error{% else %}flash-success{% endif %}">
                           {{ message }}
                       </div>
                     {% endfor %}
@@ -72,7 +75,7 @@
                     <div class="ui-card card-accent-success card-no-margin">
                         <h3>Regular Staff</h3>
                         <p class="metric-display">{{ staff_count }}</p>
-                        <p class="metric-subtext">Cashiers & Operators</p>
+                        <p class="metric-subtext">Laundrify Staff</p>
                     </div>
                 </div>
                 
@@ -93,7 +96,7 @@
                                     <th>FULL NAME</th>
                                     <th>CONTACT NO.</th>
                                     <th>ROLE</th>
-                                    <th>DATE ADDED</th>
+                                    <th>DATE CREATED</th>
                                     <th style="text-align: center;">ACTION</th>
                                 </tr>
                             </thead>
@@ -103,8 +106,7 @@
                                     <td><strong>{% if emp['Position'] == 'Admin' %}ADM-{% else %}EMP-{% endif %}{{ "%03d" | format(emp['EmpID']) }}</strong></td>
                                     <td>{{ emp['FirstName'] }} {{ emp['LastName'] }}</td>
                                     <td style="color: #64748b;">{{ emp['ContactNumber'] if emp['ContactNumber'] and emp['ContactNumber'] != 'None' else 'N/A' }}</td>
-                                    <td style="font-weight: 500; color: {% if emp['Position'] == 'Admin' %}#df1e6a{% else %}#334155{% endif %};">{{ emp['Position'] }}</td>
-                                    <td style="font-size: 0.85rem; color: #94a3b8;">{{ emp['DateCreated'][:10] if emp['DateCreated'] else '' }}</td>
+                                    <td class="{% if emp['Position'] == 'Admin' %}role-admin{% else %}role-staff{% endif %}">{{ emp['Position'] }}</td>                                    <td style="font-size: 0.85rem; color: #94a3b8;">{{ emp['DateCreated'][:10] if emp['DateCreated'] else '' }}</td>
                                     <td style="text-align: center;">
                                         <button class="btn-text-edit" 
                                                 data-id="{{ emp['EmpID'] }}" 
@@ -154,8 +156,8 @@
                             <div class="form-group">
                                 <label>Role / Position</label>
                                 <select name="role" class="form-control" required>
-                                    <option value="Staff">Staff / Cashier</option>
-                                    <option value="Admin">Admin / Manager</option>
+                                    <option value="Staff">Staff</option>
+                                    <option value="Admin">Admin</option>
                                 </select>
                             </div>
                             
@@ -230,7 +232,7 @@
                         <div class="modal-body-center">
                             <p class="modal-text-slate">Are you sure you want to delete this employee?</p>
                             <strong id="delete-emp-name" class="modal-text-danger-lg">---</strong>
-                            <p class="modal-text-muted-sm">This action cannot be undone.</p>
+                            <p class="modal-text-muted-sm">This will archive the employee record and remove their system access.</p>
                         </div>
                         <form id="deleteForm" method="POST">
                             <div class="modal-footer">

@@ -2,8 +2,6 @@ from flask import Blueprint, render_template, redirect, url_for, session, reques
 from models.db import connect_db
 from datetime import datetime, timezone, timedelta
 
-PHT = timezone(timedelta(hours=8))
-
 customer_controller = Blueprint('customer', __name__)
 
 def is_logged_in():
@@ -30,7 +28,8 @@ def add_customer():
     phone = request.form.get('phone').strip()
     address = request.form.get('address').strip()
 
-    current_pht_time = datetime.now(PHT).strftime('%Y-%m-%d %H:%M:%S')
+    PHT = timezone(timedelta(hours=8))
+    current_pht_time = datetime.now(PHT).strftime('%Y-%m-%d')
 
     if not fname or not lname or not phone or not address:
         flash('Registration failed: All fields are required!', 'error')
