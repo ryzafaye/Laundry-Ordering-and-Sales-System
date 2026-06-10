@@ -42,6 +42,14 @@
                 <h1>System Settings</h1>
             </div>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div style="padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center; font-size: 0.9em; font-weight:bold; background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0;">
+                    {% for category, message in messages %}{{ message }}{% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
             <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 
                 <div class="ui-card card-accent-info">
@@ -50,16 +58,16 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div class="form-group">
                                 <label>First Name</label>
-                                <input type="text" name="first_name" class="form-control" value="{{ admin.FirstName }}" required>
+                                <input type="text" name="first_name" class="form-control" value="{{ admin['FirstName'] }}" required>
                             </div>
                             <div class="form-group">
                                 <label>Last Name</label>
-                                <input type="text" name="last_name" class="form-control" value="{{ admin.LastName }}" required>
+                                <input type="text" name="last_name" class="form-control" value="{{ admin['LastName'] }}" required>
                             </div>
                         </div>
                         <div class="form-group" style="margin-top: 10px;">
                             <label>Contact Number</label>
-                            <input type="text" name="contact" class="form-control" value="{{ admin.ContactNumber }}" required>
+                            <input type="text" name="contact" class="form-control" value="{{ admin['ContactNumber'] }}" required>
                         </div>
                         <div class="form-group">
                             <label>Update Password</label>
@@ -122,21 +130,21 @@
                         {% for srv in services %}
                         <tr>
                             <td style="padding-left: 0; color: #404447; font-weight: bold;">
-                                SVC-{{ "%03d" | format(srv.ServiceID|int) }}
+                                {{ srv['ServiceID'] }}
                             </td>
                             
-                            <td style="font-weight: 500; color: #334155; word-wrap: break-word;">{{ srv.ServiceName }}</td>
-                            <td style="color: #64748b; font-size: 0.85rem; word-wrap: break-word;">{{ srv.Description or 'No description provided' }}</td>
-                            <td style="color: #64748b;">{{ srv.UnitType }}</td>
-                            <td style="font-weight: 600; color: #166534;">₱{{ "%.2f" | format(srv.Rate) }}</td>
+                            <td style="font-weight: 500; color: #334155; word-wrap: break-word;">{{ srv['ServiceName'] }}</td>
+                            <td style="color: #64748b; font-size: 0.85rem; word-wrap: break-word;">{{ srv['Description'] or 'No description provided' }}</td>
+                            <td style="color: #64748b;">{{ srv['UnitType'] }}</td>
+                            <td style="font-weight: 600; color: #166534;">₱{{ "%.2f" | format(srv['Rate']) }}</td>
                             
                             <td style="text-align: center; display: flex; justify-content: center; gap: 5px;">
                                 <button class="btn-outline-pink" style="padding: 5px 10px; font-size: 0.8rem;"
-                                    onclick="openEditModal('{{ srv.ServiceID }}', '{{ srv.ServiceName }}', '{{ srv.Description | escape }}', '{{ srv.UnitType }}', '{{ srv.Rate }}')">
+                                    onclick="openEditModal('{{ srv['ServiceID'] }}', '{{ srv['ServiceName'] }}', '{{ srv['Description'] | escape }}', '{{ srv['UnitType'] }}', '{{ srv['Rate'] }}')">
                                     Edit
                                 </button>
                                 
-                                <form action="{{ url_for('admin.delete_service', id=srv.ServiceID) }}" method="POST" style="margin: 0;">
+                                <form action="{{ url_for('admin.delete_service', srv_id=srv['ServiceID']) }}" method="POST" style="margin: 0;">
                                     <button type="submit" class="btn-outline-pink" style="padding: 5px 10px; font-size: 0.8rem; color: #ef4444; border-color: #ef4444;" 
                                         onclick="return confirm('Are you sure you want to delete this service?');">
                                         Delete

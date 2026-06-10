@@ -97,16 +97,14 @@
                                     <td>{{ order['StaffName'] or 'Admin' }}</td>
                                     <td style="font-weight: 600; color: #334155;">₱{{ "%.2f" | format(order['TotalAmount']) }}</td>
                                     <td style="text-align: center;">
-                                        {% if order['PaymentStatus'] == 'Voided' %}
-                                            <span class="badge-voided">Voided</span>
-                                        {% elif order['PaymentStatus'] == 'Paid' %}
-                                            <span class="badge-paid">Paid</span>
+                                        {% if order['StatusName'] == 'Cancelled' %}
+                                            <span class="badge-voided" style="background:#f1f5f9; color:#94a3b8; padding:3px 8px; border-radius:4px; font-size:0.8rem;">Voided</span>
                                         {% else %}
-                                            <span class="badge-unpaid">Unpaid</span>
+                                            <span class="badge-paid" style="background:#dcfce7; color:#166534; padding:3px 8px; border-radius:4px; font-size:0.8rem;">{{ order['PaymentMethod'] or 'Paid' }}</span>
                                         {% endif %}
                                     </td>
                                     <td style="text-align: right; padding-right: 0;">
-                                        <span class="status-pill pill-{{ order['OrderStatus'] }}">{{ order['OrderStatus'] }}</span>
+                                        <span class="status-pill pill-{{ order['StatusName'] | lower }}" style="font-weight:bold; font-size:0.85rem;">{{ order['StatusName'] }}</span>
                                     </td>
                                 </tr>
                                 {% else %}
@@ -148,14 +146,7 @@
                                     </div>
                                     <div class="metric-value-value" style="color: #10b981;">₱{{ "%.2f" | format(income_today) }}</div>
                                 </div>
-                                <div class="machine-status-row">
-                                    <div>
-                                        <strong style="color: #334155;">Pending Receivables</strong><br>
-                                        <small style="color: #94a3b8;">Unpaid processed orders</small>
-                                    </div>
-                                    <div class="metric-value-value" style="color: #f59e0b;">₱{{ "%.2f" | format(pending_collectibles) }}</div>
-                                </div>
-                                <div class="machine-status-row last-row">
+                                <div class="machine-status-row last-row" style="border: none;">
                                     <div>
                                         <strong style="color: #334155;">Completed Orders</strong><br>
                                         <small style="color: #94a3b8;">Successfully claimed</small>

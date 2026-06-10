@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 order_controller = Blueprint('order', __name__)
 
 def is_logged_in():
-    return 'emp_id' in session
+    return 'user_id' in session
 
 @order_controller.route('/order')
 def pos():
@@ -43,9 +43,9 @@ def save_order():
     amount_tendered = request.form.get('amount_tendered')
     basket_data_json = request.form.get('basket_data')
     
-    emp_id = session.get('emp_id')
-    if not emp_id:
-        emp_id = None 
+    user_id = session.get('user_id')
+    if not user_id:
+        user_id = None 
 
     conn = connect_db()
     cursor = conn.cursor()
@@ -62,9 +62,9 @@ def save_order():
             
         cursor.execute('''
             INSERT INTO "ORDERS" 
-            ("CustomerID", "ProcessedByEmpID", "ClaimingMethod", "OrderStatus", "TotalAmount", "OrderDate")
-            VALUES (?, ?, ?, 'Pending', ?, ?)
-        ''', (customer_id, emp_id, claiming_method, total_amount, ph_time))
+            ("CustomerID", "ProcessedByUserID", "ClaimingMethod", "StatusID", "TotalAmount", "OrderDate")
+            VALUES (?, ?, ?, 'S-01', ?, ?)
+        ''', (customer_id, user_id, claiming_method, total_amount, ph_time))
         
         order_id = cursor.lastrowid
         
@@ -82,8 +82,8 @@ def save_order():
             
         cursor.execute('''
             INSERT INTO "PAYMENTS" 
-            ("OrderID", "PaymentMethod", "PaymentStatus", "AmountPaid", "PaymentDate")
-            VALUES (?, ?, 'Paid', ?, ?)
+            ("OrderID", "PaymentMethod", "AmountPaid", "PaymentDate")
+            VALUES (?, ?, ?, ?)
         ''', (order_id, payment_method, actual_paid, ph_time))
         
         conn.commit()
@@ -108,18 +108,12 @@ def cancel_order(order_id):
     try:
         cursor.execute('''
             UPDATE "ORDERS" 
-            SET "OrderStatus" = 'Cancelled' 
-            WHERE "OrderID" = ?
-        ''', (order_id,))
-        
-        cursor.execute('''
-            UPDATE "PAYMENTS" 
-            SET "PaymentStatus" = 'Voided' 
+            SET "StatusID" = 'S-05' 
             WHERE "OrderID" = ?
         ''', (order_id,))
         
         conn.commit()
-        flash(f"Order #{order_id} has been successfully cancelled and payment is voided.", "success")
+        flash(f"Order #{order_id} has been successfully cancelled.", "success")
         print(f"SUCCESS: Order #{order_id} cancelled.")
         
     except Exception as e:

@@ -42,32 +42,40 @@
                 <div class="dashboard-header">
                     <h1 style="margin: 0;">Transaction History</h1>
                     <div class="dashboard-staff-info">
-                        <img src="../static/images/user.png" alt="Staff Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
+                        <img src="{{ url_for('static', filename='images/user.png') }}" alt="Staff Icon">
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name') }} ({{ session.get('role') }})</strong></span>
                     </div>
                 </div>
                 
                 <div class="history-table-card ui-card" style="margin-top: 20px;">
                     <div class="history-controls">
-                        <div class="search-container" style="display: flex; gap: 10px;">
-                            <input type="text" id="searchHistory" class="search-input" placeholder="Search by ID or Customer..." oninput="filterHistory()" style="width: 250px;">
-                            <input type="date" id="dateFilter" class="filter-select" onchange="filterHistory()">
+                        <form action="{{ url_for('history.transaction_history') }}" method="GET" class="modern-search-form" style="width: 100%;">
+                            <div class="search-input-wrapper" style="width: 350px;">
+                                <svg class="search-icon" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                                
+                                <input type="text" name="search" class="search-control" placeholder="Search ID or Customer... (Press Enter)" value="{{ current_search }}">
+                                
+                                {% if current_search %}
+                                <a href="{{ url_for('history.transaction_history') }}" class="clear-icon" title="Clear Search">&times;</a>
+                                {% endif %}
+                            </div>
                             
-                            <select id="statusFilter" class="filter-select" onchange="filterHistory()">
-                                <option value="all">Status: All</option>
-                                <option value="paid">Paid</option>
-                                <option value="cancelled">Cancelled</option>
+                            <input type="date" name="date" class="filter-select" value="{{ current_date }}" onchange="this.form.submit()">
+                            
+                            <select name="status" class="filter-select" onchange="this.form.submit()">
+                                <option value="all" {% if current_status == 'all' %}selected{% endif %}>Status: All</option>
+                                <option value="paid" {% if current_status == 'paid' %}selected{% endif %}>Paid</option>
+                                <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
                             </select>
-                        </div>
-                        <div id="historyCount" style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Showing records...</div>
+                        </form>
                     </div>
 
                     <div class="table-wrapper" style="margin-top: 15px;">
                         <table class="basket-table" id="historyTable">
                             <thead>
                                 <tr>
-                                    <th>Payment ID</th>
-                                    <th>Order Details</th>
+                                    <th>Trans ID</th>
+                                    <th>Customer Details</th>
                                     <th>Services Availed</th>
                                     <th>Order Date</th>
                                     <th>Date Claimed</th>
@@ -78,8 +86,8 @@
                             </thead>
                             <tbody>
                                 {% for record in records %}
-                                <tr data-status="{{ record['Status'] | lower }}" data-date="{{ record['OrderDate'][:10] }}">
-                                    <td><strong>PAY-{{ "%03d" | format(record['PaymentID']) }}</strong></td>
+                                <tr>
+                                    <td><strong>TRX-{{ "%03d" | format(record['OrderID']) }}</strong></td>
                                     <td>
                                         <span style="color: #64748b; font-size: 0.8rem;">ORD-{{ "%03d" | format(record['OrderID']) }}</span><br>
                                         {{ record['CustomerName'] }}
@@ -107,7 +115,7 @@
                                 {% else %}
                                 <tr>
                                     <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
-                                        No transactions found.
+                                        No transaction records found matching your criteria.
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -122,36 +130,6 @@
     <script>
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
-
-        function filterHistory() {
-            const query = document.getElementById('searchHistory').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
-            const dateFilter = document.getElementById('dateFilter').value;
-            const rows = document.querySelectorAll('#historyTable tbody tr');
-            
-            let visibleCount = 0;
-            rows.forEach(row => {
-                if(row.children.length === 1) return;
-
-                const rowText = row.textContent.toLowerCase();
-                const rowStatus = row.getAttribute('data-status'); 
-                const rowDate = row.getAttribute('data-date'); 
-
-                const matchesSearch = rowText.includes(query);
-                const matchesStatus = (statusFilter === 'all') || (rowStatus === statusFilter);
-                const matchesDate = (dateFilter === '') || (rowDate === dateFilter);
-
-                if (matchesSearch && matchesStatus && matchesDate) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-            document.getElementById('historyCount').innerHTML = `Showing <strong>${visibleCount}</strong> records`;
-        }
-        
-        window.onload = filterHistory;
     </script>
 </body>
 </html>

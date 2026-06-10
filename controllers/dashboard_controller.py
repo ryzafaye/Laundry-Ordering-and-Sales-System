@@ -6,7 +6,7 @@ dashboard_controller = Blueprint('dashboard', __name__)
 
 @dashboard_controller.route('/dashboard')
 def index():
-    if 'emp_id' not in session:
+    if 'user_id' not in session:
         return redirect(url_for('auth.login'))
         
     conn = connect_db()
@@ -15,43 +15,37 @@ def index():
     
     today_date = datetime.now().strftime('%Y-%m-%d')
     
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND "PaymentDate" LIKE ?', (today_date + '%',))
+    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentDate" LIKE ?', (today_date + '%',))
     today_sales = cursor.fetchone()[0] or 0.0
     
-    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "OrderStatus" = \'Processing\'')
+    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "StatusID" = \'S-02\'')
     washing_count = cursor.fetchone()[0]
     
-    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "OrderStatus" = \'Ready\' AND "ClaimingMethod" = \'Pickup\'')
+    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "StatusID" = \'S-03\' AND "ClaimingMethod" = \'Pickup\'')
     pickup_count = cursor.fetchone()[0]
     
-    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "OrderStatus" IN (\'Pending\', \'Processing\', \'Ready\') AND "ClaimingMethod" = \'Delivery\'')
+    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "StatusID" IN (\'S-01\', \'S-02\', \'S-03\') AND "ClaimingMethod" = \'Delivery\'')
     delivery_count = cursor.fetchone()[0]
     
-    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "OrderStatus" = \'Claimed\'')
+    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "StatusID" = \'S-04\'')
     completed_count = cursor.fetchone()[0]
     
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND "PaymentMethod" = \'Cash\' AND "PaymentDate" LIKE ?', (today_date + '%',))
+    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentMethod" = \'Cash\' AND "PaymentDate" LIKE ?', (today_date + '%',))
     cash_sales = cursor.fetchone()[0] or 0.0
     
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND "PaymentMethod" != \'Cash\' AND "PaymentDate" LIKE ?', (today_date + '%',))
+    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentMethod" != \'Cash\' AND "PaymentDate" LIKE ?', (today_date + '%',))
     online_sales = cursor.fetchone()[0] or 0.0
-    
-    cursor.execute('''
-        SELECT SUM(p."AmountPaid") FROM "PAYMENTS" p 
-        JOIN "ORDERS" o ON p."OrderID" = o."OrderID" 
-        WHERE p."PaymentStatus" = \'Unpaid\' AND o."OrderStatus" != \'Cancelled\'
-    ''')
-    collectibles = cursor.fetchone()[0] or 0.0
     
     cursor.execute('''
         SELECT 
             o."OrderID", c."FirstName", c."LastName", o."TotalAmount", 
-            p."PaymentStatus", o."OrderStatus",
+            p."PaymentMethod", os."StatusName",
             (SELECT GROUP_CONCAT(s."ServiceName", ', ') FROM "ORDER_DETAILS" od JOIN "SERVICES" s ON od."ServiceID" = s."ServiceID" WHERE od."OrderID" = o."OrderID")
         FROM "ORDERS" o
         JOIN "CUSTOMERS" c ON o."CustomerID" = c."CustomerID"
+        JOIN "ORDER_STATUS" os ON o."StatusID" = os."StatusID"
         LEFT JOIN "PAYMENTS" p ON o."OrderID" = p."OrderID"
-        WHERE o."OrderStatus" != 'Claimed' AND o."OrderStatus" != 'Cancelled'
+        WHERE o."StatusID" NOT IN ('S-04', 'S-05')
         ORDER BY o."OrderDate" DESC LIMIT 10
     ''')
     recent_data = cursor.fetchall()
@@ -62,7 +56,7 @@ def index():
             'OrderID': row[0],
             'CustomerName': f"{row[1]} {row[2]}",
             'TotalAmount': row[3],
-            'PaymentStatus': row[4] if row[4] else 'Unpaid',
+            'PaymentMethod': row[4] if row[4] else 'N/A',
             'OrderStatus': row[5],
             'Services': row[6] if row[6] else 'N/A'
         })
@@ -77,5 +71,4 @@ def index():
                            completed_count=completed_count,
                            cash_sales=cash_sales,
                            online_sales=online_sales,
-                           collectibles=collectibles,
                            recent_orders=recent_orders)
