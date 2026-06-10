@@ -25,19 +25,19 @@
     <div class="app-frame">
         <aside class="sidebar-nav">
             <a href="{{ url_for('admin.dashboard') }}" class="nav-link">
-                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
+                <img src="{{ url_for('static', filename='images/dashboard-admin.png') }}" class="nav-icon" alt="">Dashboard</a>
             <a href="{{ url_for('admin.staff_management') }}" class="nav-link">
                 <img src="{{ url_for('static', filename='images/employee.png') }}" class="nav-icon" alt="">Manage Staff</a>
             <a href="{{ url_for('admin.all_orders') }}" class="nav-link">
-                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">All Orders</a>
+                <img src="{{ url_for('static', filename='images/booking.png') }}" class="nav-icon" alt="">All Orders</a>
             <a href="{{ url_for('admin.financial_reports') }}" class="nav-link active">
-                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Reports</a>
+                <img src="{{ url_for('static', filename='images/reports.png') }}" class="nav-icon" alt="">Reports</a>
             <a href="{{ url_for('admin.system_settings') }}" class="nav-link">
                 <img src="{{ url_for('static', filename='images/settings.png') }}" class="nav-icon" alt="">Settings</a>
                 
             <div class="logout-anchor">
                 <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
-                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
+                    <img src="{{ url_for('static', filename='images/logout-admin.png') }}" class="nav-icon" alt="">Log Out</a>
             </div>
         </aside>
 
@@ -222,7 +222,6 @@
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
 
-        // 1. BAR CHART: Periodic Sales
         const ctxSales = document.getElementById('salesChart').getContext('2d');
         new Chart(ctxSales, {
             type: 'bar',
@@ -230,7 +229,12 @@
                 labels: ['Today', 'This Week', 'This Month', 'This Year'],
                 datasets: [{
                     label: 'Revenue (₱)',
-                    data: [{{ sales_today }}, {{ sales_week }}, {{ sales_month }}, {{ sales_year }}],
+                    data: [
+                    Number('{{ sales_today }}'), 
+                    Number('{{ sales_week }}'), 
+                    Number('{{ sales_month }}'), 
+                    Number('{{ sales_year }}')
+                    ],
                     backgroundColor: '#db2777',
                     borderRadius: 4
                 }]

@@ -17,23 +17,45 @@ def dashboard():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND strftime(\'%m\', "PaymentDate") = strftime(\'%m\', \'now\') AND strftime(\'%Y\', "PaymentDate") = strftime(\'%Y\', \'now\')')
+    cursor.execute('''
+        SELECT SUM("AmountPaid") 
+        FROM "PAYMENTS" 
+        WHERE "PaymentStatus" = 'Paid' 
+        AND strftime('%m', "PaymentDate") = strftime('%m', 'now', '+8 hours') 
+        AND strftime('%Y', "PaymentDate") = strftime('%Y', 'now', '+8 hours')
+    ''')
     res = cursor.fetchone()
     monthly_revenue = res[0] if (res and res[0] is not None) else 0.0
 
-    cursor.execute('SELECT COUNT(*) FROM "EMPLOYEES" WHERE "Position" != \'Admin\'')
+    cursor.execute('''
+        SELECT COUNT(*) 
+        FROM "EMPLOYEES" 
+        WHERE "Position" != 'Admin'
+    ''')
     res = cursor.fetchone()
     staff_count = res[0] if (res and res[0] is not None) else 0
 
-    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE date("OrderDate") = date(\'now\')')
+    cursor.execute('''
+        SELECT COUNT(*) 
+        FROM "ORDERS" 
+        WHERE date("OrderDate") = date('now', '+8 hours')
+    ''')
     res = cursor.fetchone()
     orders_today = res[0] if (res and res[0] is not None) else 0
 
-    cursor.execute('SELECT COUNT(*) FROM "CUSTOMERS"')
+    cursor.execute('''
+        SELECT COUNT(*) 
+        FROM "CUSTOMERS"
+    ''')
     res = cursor.fetchone()
     customer_count = res[0] if (res and res[0] is not None) else 0
 
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND date("PaymentDate") = date(\'now\')')
+    cursor.execute('''
+        SELECT SUM("AmountPaid") 
+        FROM "PAYMENTS" 
+        WHERE "PaymentStatus" = 'Paid' 
+        AND date("PaymentDate") = date('now', '+8 hours')
+    ''')
     res = cursor.fetchone()
     income_today = res[0] if (res and res[0] is not None) else 0.0
 
@@ -46,7 +68,11 @@ def dashboard():
     res = cursor.fetchone()
     pending_collectibles = res[0] if (res and res[0] is not None) else 0.0
 
-    cursor.execute('SELECT COUNT(*) FROM "ORDERS" WHERE "OrderStatus" = \'Claimed\'')
+    cursor.execute('''
+        SELECT COUNT(*) 
+        FROM "ORDERS" 
+        WHERE "OrderStatus" = 'Claimed'
+    ''')
     res = cursor.fetchone()
     completed_orders = res[0] if (res and res[0] is not None) else 0
 
@@ -66,7 +92,7 @@ def dashboard():
         LEFT JOIN "EMPLOYEES" e ON o."ProcessedByEmpID" = e."EmpID"
         LEFT JOIN "PAYMENTS" p ON o."OrderID" = p."OrderID"
         ORDER BY o."OrderDate" DESC 
-        LIMIT 5
+        LIMIT 10
     ''')
 
     recent_orders = [dict(row) for row in cursor.fetchall()]
@@ -92,7 +118,10 @@ def staff_management():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
-    cursor.execute('SELECT * FROM "EMPLOYEES"')
+    cursor.execute('''
+        SELECT * FROM "EMPLOYEES" 
+        WHERE "Status" = 'Active' OR "Status" IS NULL
+    ''')   
     employees = cursor.fetchall()
     
     total_emp = len(employees)
@@ -125,8 +154,8 @@ def add_staff():
     cursor = conn.cursor()
     try:
         cursor.execute('''
-            INSERT INTO "EMPLOYEES" ("FirstName", "LastName", "Position", "Password", "ContactNumber")
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO "EMPLOYEES" ("FirstName", "LastName", "Position", "Password", "ContactNumber", "Status")
+            VALUES (?, ?, ?, ?, ?, 'Active')
         ''', (fname, lname, role, password, contact))
         conn.commit()
         flash("New employee added successfully!", "success")
@@ -184,7 +213,11 @@ def delete_staff(emp_id):
     conn = connect_db()
     cursor = conn.cursor()
     try:
-        cursor.execute('DELETE FROM "EMPLOYEES" WHERE "EmpID" = ?', (emp_id,))
+        cursor.execute('''
+            UPDATE "EMPLOYEES" 
+            SET "Status" = 'Inactive' 
+            WHERE "EmpID" = ?
+        ''', (emp_id,))
         conn.commit()
     except Exception as e:
         print(f"Cannot delete: {e}")
@@ -270,33 +303,59 @@ def financial_reports():
         params_p.extend([start_date, end_date])
         params_c.extend([start_date, end_date])
 
-    cursor.execute(f'SELECT SUM("AmountPaid") FROM "PAYMENTS" p {where_p}', params_p)
+    cursor.execute(f'''SELECT SUM("AmountPaid") FROM "PAYMENTS" p {where_p}''', params_p)
     total_sales = cursor.fetchone()[0] or 0.0
 
-    cursor.execute(f'SELECT COUNT(*) FROM "ORDERS" o {where_o}', params_o)
+    cursor.execute(f'''SELECT COUNT(*) FROM "ORDERS" o {where_o}''', params_o)
     total_orders = cursor.fetchone()[0] or 0
 
-    cursor.execute(f'SELECT COUNT(*) FROM "CUSTOMERS" {where_c}', params_c)
+    cursor.execute(f'''SELECT COUNT(*) FROM "CUSTOMERS" {where_c}''', params_c)
     total_customers = cursor.fetchone()[0] or 0
 
-    cursor.execute(f'SELECT COUNT(*) FROM "PAYMENTS" p {where_p}', params_p)
+    cursor.execute(f'''SELECT COUNT(*) FROM "PAYMENTS" p {where_p}''', params_p)
     total_payments = cursor.fetchone()[0] or 0
     
     avg_order_value = (total_sales / total_orders) if total_orders > 0 else 0.0
 
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND date("PaymentDate") = date(\'now\')')
+    cursor.execute('''
+        SELECT SUM("AmountPaid") 
+        FROM "PAYMENTS" 
+        WHERE "PaymentStatus" = 'Paid' 
+        AND date("PaymentDate") = date('now', '+8 hours')
+    ''')
     sales_today = cursor.fetchone()[0] or 0.0
 
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND strftime(\'%W\', "PaymentDate") = strftime(\'%W\', \'now\') AND strftime(\'%Y\', "PaymentDate") = strftime(\'%Y\', \'now\')')
+    cursor.execute('''
+        SELECT SUM("AmountPaid") 
+        FROM "PAYMENTS" 
+        WHERE "PaymentStatus" = 'Paid' 
+        AND strftime('%W', "PaymentDate") = strftime('%W', 'now', '+8 hours') 
+        AND strftime('%Y', "PaymentDate") = strftime('%Y', 'now', '+8 hours')
+    ''')
     sales_week = cursor.fetchone()[0] or 0.0
 
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND strftime(\'%m\', "PaymentDate") = strftime(\'%m\', \'now\') AND strftime(\'%Y\', "PaymentDate") = strftime(\'%Y\', \'now\')')
+    cursor.execute('''
+        SELECT SUM("AmountPaid") 
+        FROM "PAYMENTS" 
+        WHERE "PaymentStatus" = 'Paid' 
+        AND strftime('%m', "PaymentDate") = strftime('%m', 'now', '+8 hours') 
+        AND strftime('%Y', "PaymentDate") = strftime('%Y', 'now', '+8 hours')
+    ''')
     sales_month = cursor.fetchone()[0] or 0.0
 
-    cursor.execute('SELECT SUM("AmountPaid") FROM "PAYMENTS" WHERE "PaymentStatus" = \'Paid\' AND strftime(\'%Y\', "PaymentDate") = strftime(\'%Y\', \'now\')')
+    cursor.execute('''
+        SELECT SUM("AmountPaid") 
+        FROM "PAYMENTS" 
+        WHERE "PaymentStatus" = 'Paid' 
+        AND strftime('%Y', "PaymentDate") = strftime('%Y', 'now', '+8 hours')
+    ''')
     sales_year = cursor.fetchone()[0] or 0.0
 
-    cursor.execute(f'SELECT "OrderStatus", COUNT(*) as count FROM "ORDERS" o {where_o} GROUP BY "OrderStatus"', params_o)
+    cursor.execute(f'''
+        SELECT "OrderStatus", COUNT(*) as count 
+        FROM "ORDERS" o {where_o} 
+        GROUP BY "OrderStatus"
+    ''', params_o)
     order_status_counts = {row['OrderStatus']: row['count'] for row in cursor.fetchall()}
     completed_orders = order_status_counts.get('Claimed', 0)
     cancelled_orders = order_status_counts.get('Cancelled', 0)
@@ -331,7 +390,12 @@ def financial_reports():
     ''', params_p)
     payment_report = cursor.fetchall()
 
-    cursor.execute('SELECT COUNT(*) FROM "CUSTOMERS" WHERE strftime(\'%m\', "DateRegistered") = strftime(\'%m\', \'now\') AND strftime(\'%Y\', "DateRegistered") = strftime(\'%Y\', \'now\')')
+    cursor.execute('''
+        SELECT COUNT(*) 
+        FROM "CUSTOMERS" 
+        WHERE strftime('%m', "DateRegistered") = strftime('%m', 'now', '+8 hours') 
+        AND strftime('%Y', "DateRegistered") = strftime('%Y', 'now', '+8 hours')
+    ''')
     new_cust_month = cursor.fetchone()[0] or 0
 
     cursor.execute(f'''
@@ -367,10 +431,16 @@ def system_settings():
     cursor = conn.cursor()
     
     emp_id = session.get('emp_id')
-    cursor.execute('SELECT * FROM "EMPLOYEES" WHERE "EmpID" = ?', (emp_id,))
+    cursor.execute('''
+        SELECT * FROM "EMPLOYEES" 
+        WHERE "EmpID" = ?
+    ''', (emp_id,))
     admin_data = cursor.fetchone()
     
-    cursor.execute('SELECT * FROM "SERVICES" ORDER BY "ServiceID" ASC')
+    cursor.execute('''
+        SELECT * FROM "SERVICES" 
+        ORDER BY "ServiceID" ASC
+    ''')
     services = cursor.fetchall()
     
     conn.close()
@@ -391,9 +461,17 @@ def update_profile():
     cursor = conn.cursor()
     
     if password and password.strip() != "":
-        cursor.execute('UPDATE "EMPLOYEES" SET "FirstName"=?, "LastName"=?, "ContactNumber"=?, "Password"=? WHERE "EmpID"=?', (fname, lname, contact, password, emp_id))
+        cursor.execute('''
+            UPDATE "EMPLOYEES" 
+            SET "FirstName"=?, "LastName"=?, "ContactNumber"=?, "Password"=? 
+            WHERE "EmpID"=?
+        ''', (fname, lname, contact, password, emp_id))
     else:
-        cursor.execute('UPDATE "EMPLOYEES" SET "FirstName"=?, "LastName"=?, "ContactNumber"=? WHERE "EmpID"=?', (fname, lname, contact, emp_id))
+        cursor.execute('''
+            UPDATE "EMPLOYEES" 
+            SET "FirstName"=?, "LastName"=?, "ContactNumber"=? 
+            WHERE "EmpID"=?
+        ''', (fname, lname, contact, emp_id))
         
     conn.commit()
     session['full_name'] = f"{fname} {lname}" 
@@ -403,32 +481,73 @@ def update_profile():
 
 @admin_controller.route('/settings/add_service', methods=['POST'])
 def add_service():
-    if not is_admin(): return redirect(url_for('auth.login'))
-    
-    name = request.form.get('service_name')
-    unit = request.form.get('unit_type')
+    service_name = request.form.get('service_name')
+    description = request.form.get('description', '') 
+    unit_type = request.form.get('unit_type')
     rate = request.form.get('rate')
-    
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO "SERVICES" ("ServiceName", "UnitType", "Rate") VALUES (?, ?, ?)', (name, unit, float(rate)))
-    conn.commit()
-    conn.close()
+
+    try:
+        conn = sqlite3.connect('laundrify.db', timeout=10)
+        cursor = conn.cursor()
         
+        cursor.execute('''
+            INSERT INTO "SERVICES" ("ServiceName", "Description", "UnitType", "Rate") 
+            VALUES (?, ?, ?, ?)
+        ''', (service_name, description, unit_type, rate))
+        
+        conn.commit()
+    except Exception as e:
+        print(f"Error adding service: {e}")
+    finally:
+        if conn:
+            conn.close()
+
     return redirect(url_for('admin.system_settings'))
 
-@admin_controller.route('/settings/edit_service/<int:service_id>', methods=['POST'])
-def edit_service(service_id):
-    if not is_admin(): return redirect(url_for('auth.login'))
-    
-    name = request.form.get('service_name')
-    unit = request.form.get('unit_type')
+@admin_controller.route('/settings/edit_service/<int:id>', methods=['POST'])
+def edit_service(id):
+    service_name = request.form.get('service_name')
+    description = request.form.get('description', '') 
+    unit_type = request.form.get('unit_type')
     rate = request.form.get('rate')
-    
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute('UPDATE "SERVICES" SET "ServiceName" = ?, "UnitType" = ?, "Rate" = ? WHERE "ServiceID" = ?', (name, unit, float(rate), service_id))
-    conn.commit()
-    conn.close()
+
+    try:
+        conn = sqlite3.connect('laundrify.db', timeout=10)
+        cursor = conn.cursor()
         
+        cursor.execute('''
+            UPDATE "SERVICES" 
+            SET "ServiceName" = ?, "Description" = ?, "UnitType" = ?, "Rate" = ? 
+            WHERE "ServiceID" = ?
+        ''', (service_name, description, unit_type, rate, id))
+        
+        conn.commit()
+    except Exception as e:
+        print(f"Error updating service: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+    return redirect(url_for('admin.system_settings'))
+
+@admin_controller.route('/settings/delete_service/<int:id>', methods=['POST'])
+def delete_service(id):
+    try:
+        conn = sqlite3.connect('laundrify.db', timeout=10)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            DELETE FROM "SERVICES" 
+            WHERE ServiceID = ?
+        ''', (id,))
+        
+        conn.commit()
+        
+    except Exception as e:
+        print(f"ERROR DELETING THE SERVICE: {e}")
+        
+    finally:
+        if conn:
+            conn.close()
+
     return redirect(url_for('admin.system_settings'))

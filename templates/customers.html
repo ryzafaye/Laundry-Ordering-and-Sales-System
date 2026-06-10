@@ -185,12 +185,11 @@
 
           <div class="form-group">
             <label for="phone">Contact Number</label>
-            <input type="text" id="phone" name="phone" class="form-control" placeholder="09XX-XXX-XXXX" required />
-            <div class="field-error-msg" id="phone-error"></div>
+            <input type="text" id="phone" name="phone" class="form-control" placeholder="e.g. 09123456789" maxlength="11" pattern="09[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required />            <div class="field-error-msg" id="phone-error"></div>
           </div>
 
           <div class="form-group">
-            <label for="address">Complete Delivery Address</label>
+            <label for="address">Address</label>
             <textarea id="address" name="address" class="form-control" rows="3" placeholder="House/Bldg No., Street, Barangay, City/Province" style="resize: none" required></textarea>
             <div class="field-error-msg" id="address-error"></div>
           </div>
@@ -225,7 +224,7 @@
 
           <div class="form-group">
             <label for="edit-phone">Contact Number</label>
-            <input type="text" id="edit-phone" name="edit_phone" class="form-control" required />
+            <input type="text" id="edit-phone" name="edit_phone" class="form-control" required />            
             <div class="field-error-msg" id="edit-phone-error"></div>
           </div>
 

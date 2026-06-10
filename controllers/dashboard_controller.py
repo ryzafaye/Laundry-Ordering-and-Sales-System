@@ -39,7 +39,7 @@ def index():
     cursor.execute('''
         SELECT SUM(p."AmountPaid") FROM "PAYMENTS" p 
         JOIN "ORDERS" o ON p."OrderID" = o."OrderID" 
-        WHERE p."PaymentStatus" = \'Unpaid\' AND o."OrderStatus" != \'Cancelled\'
+        WHERE p."PaymentMethod" = \'Pay Later\' AND o."OrderStatus" != \'Cancelled\'
     ''')
     collectibles = cursor.fetchone()[0] or 0.0
     

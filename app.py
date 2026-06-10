@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for, session
 from models.db import create_tables
-from controllers.auth_controller import auth_controller # IN-IMPORT NATIN DITO
+from controllers.auth_controller import auth_controller
 from controllers.customer_controller import customer_controller
 from controllers.service_controller import service_controller
 from controllers.order_controller import order_controller
@@ -26,7 +26,7 @@ app.register_blueprint(admin_controller)
 @app.route('/')
 def index():
     if 'emp_id' in session:
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('admin.dashboard'))
     return redirect(url_for('auth.login'))
 
 if __name__ == '__main__':

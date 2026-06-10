@@ -43,7 +43,7 @@
                     <h1 style="margin: 0;">Transaction History</h1>
                     <div class="dashboard-staff-info">
                         <img src="../static/images/user.png" alt="Staff Icon">
-                        <span>Staff Counter: <strong style="color: var(--brand-dark);">Active User</strong></span>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
                     </div>
                 </div>
                 
@@ -53,7 +53,6 @@
                             <input type="text" id="searchHistory" class="search-input" placeholder="Search by ID or Customer..." oninput="filterHistory()" style="width: 250px;">
                             <input type="date" id="dateFilter" class="filter-select" onchange="filterHistory()">
                             
-                            <!-- Binago ang Filter para maging Paid at Cancelled -->
                             <select id="statusFilter" class="filter-select" onchange="filterHistory()">
                                 <option value="all">Status: All</option>
                                 <option value="paid">Paid</option>
@@ -79,7 +78,6 @@
                             </thead>
                             <tbody>
                                 {% for record in records %}
-                                <!-- Extracting just the YYYY-MM-DD for the date filter logic -->
                                 <tr data-status="{{ record['Status'] | lower }}" data-date="{{ record['OrderDate'][:10] }}">
                                     <td><strong>PAY-{{ "%03d" | format(record['PaymentID']) }}</strong></td>
                                     <td>
@@ -102,7 +100,6 @@
                                         {% endif %}
                                     </td>
                                     
-                                    <!-- LOGIC: RED kapag cancelled, GREEN kapag paid -->
                                     <td style="text-align: right; font-weight: bold; font-size: 1.05rem; color: {% if record['Status'] == 'Cancelled' %}#ef4444{% else %}#15803d{% endif %};">
                                         ₱{{ "%.2f" | format(record['AmountPaid']) }}
                                     </td>

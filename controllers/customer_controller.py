@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, session, request, flash
 from models.db import connect_db
+from datetime import datetime, timezone, timedelta
 
 customer_controller = Blueprint('customer', __name__)
 
@@ -27,6 +28,9 @@ def add_customer():
     phone = request.form.get('phone').strip()
     address = request.form.get('address').strip()
 
+    PHT = timezone(timedelta(hours=8))
+    current_pht_time = datetime.now(PHT).strftime('%Y-%m-%d')
+
     if not fname or not lname or not phone or not address:
         flash('Registration failed: All fields are required!', 'error')
         return redirect(url_for('customer.customers')) 
@@ -41,9 +45,9 @@ def add_customer():
         conn = connect_db()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO "CUSTOMERS" ("FirstName", "LastName", "ContactNumber", "Address")
-            VALUES (?, ?, ?, ?)
-        """, (fname, lname, clean_phone, address))
+            INSERT INTO "CUSTOMERS" ("FirstName", "LastName", "ContactNumber", "Address", "DateRegistered")
+            VALUES (?, ?, ?, ?, ?)
+        """, (fname, lname, clean_phone, address, current_pht_time))
         conn.commit()
         conn.close()
         flash('New customer successfully registered!', 'success')
