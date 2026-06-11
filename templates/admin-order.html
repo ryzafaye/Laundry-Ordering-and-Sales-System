@@ -18,19 +18,19 @@
     <div class="app-frame">
         <aside class="sidebar-nav">
             <a href="{{ url_for('admin.dashboard') }}" class="nav-link">
-                <img src="{{ url_for('static', filename='images/dashboard-admin.png') }}" class="nav-icon" alt="">Dashboard</a>
+                <img src="{{ url_for('static', filename='images/dashboard.png') }}" class="nav-icon" alt="">Dashboard</a>
             <a href="{{ url_for('admin.staff_management') }}" class="nav-link">
                 <img src="{{ url_for('static', filename='images/employee.png') }}" class="nav-icon" alt="">Manage Staff</a>
             <a href="{{ url_for('admin.all_orders') }}" class="nav-link active">
-                <img src="{{ url_for('static', filename='images/booking.png') }}" class="nav-icon" alt="">All Orders</a>
+                <img src="{{ url_for('static', filename='images/order.png') }}" class="nav-icon" alt="">All Orders</a>
             <a href="{{ url_for('admin.financial_reports') }}" class="nav-link">
-                <img src="{{ url_for('static', filename='images/reports.png') }}" class="nav-icon" alt="">Reports</a>
+                <img src="{{ url_for('static', filename='images/history.png') }}" class="nav-icon" alt="">Reports</a>
             <a href="{{ url_for('admin.system_settings') }}" class="nav-link">
                 <img src="{{ url_for('static', filename='images/settings.png') }}" class="nav-icon" alt="">Settings</a>
 
             <div class="logout-anchor">
                 <a href="{{ url_for('auth.logout') }}" class="nav-link logout-btn">
-                    <img src="{{ url_for('static', filename='images/logout-admin.png') }}" class="nav-icon" alt="">Log Out</a>
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" class="nav-icon" alt="">Log Out</a>
             </div>
         </aside>
 
@@ -47,12 +47,16 @@
                 
                 <div class="ui-card">
                     <div class="queue-controls">
-                        <div class="search-container">
-                            <input type="text" id="searchInput" class="search-input" placeholder="Search ID, Customer, Staff..." oninput="filterOrders()" style="flex: 1; min-width: 250px;">
+                        
+                        <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                            <div style="position: relative; display: flex; align-items: center; flex: 1;">
+                                <svg viewBox="0 0 512 512" style="position: absolute; left: 14px; width: 16px; height: 16px; fill: #94a3b8;"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                                <input type="text" id="searchInput" oninput="filterOrders()" placeholder="Search ID, Customer, Staff..." style="width: 100%; padding: 10px 15px 10px 40px; border: 1px solid #cbd5e1; border-radius: 25px; font-size: 0.9rem; outline: none; background-color: #f8fafc;">
+                            </div>
                             
-                            <input type="date" id="dateFilter" class="filter-select" onchange="filterOrders()" title="Filter by Order Date">
+                            <input type="date" id="dateFilter" class="filter-select" onchange="filterOrders()" style="border-radius: 20px;" title="Filter by Order Date">
                             
-                            <select id="statusFilter" class="filter-select" onchange="filterOrders()">
+                            <select id="statusFilter" class="filter-select" onchange="filterOrders()" style="border-radius: 20px;">
                                 <option value="all">Status: All Records</option>
                                 <option value="pending">Pending</option>
                                 <option value="processing">Processing</option>
@@ -62,7 +66,7 @@
                             </select>
                         </div>
                         
-                        <div id="activeCount" style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">
+                        <div id="activeCount" style="font-size: 0.9rem; color: #64748b; margin-top: 15px;">
                             Showing <strong>{{ orders|length }}</strong> system rows
                         </div>
                     </div>
@@ -74,11 +78,10 @@
                                     <th>ORDER ID</th>
                                     <th>CUSTOMER</th>
                                     <th>ORDER DATE</th>
-                                    <th>DATE CLAIMED</th>
                                     <th>HANDLED BY</th>
-                                    <th style="text-align: center;">PAYMENT DETAILS</th>
+                                    <th style="text-align: center;">PAYMENT</th>
                                     <th>TOTAL AMOUNT</th>
-                                    <th>ORDER STATUS</th>
+                                    <th>STATUS</th>
                                     <th style="text-align: center;">ACTION</th>
                                 </tr>
                             </thead>
@@ -89,46 +92,28 @@
                                     
                                     <td>
                                         {{ order.CustFirstName }} {{ order.CustLastName }}<br>
-                                        <span style="font-size: 0.75rem; color: #94a3b8;">CUST-{{ "%03d" | format(order.CustomerID) }}</span>
+                                        <span style="font-size: 0.75rem; color: #94a3b8;">{{ order.CustomerID }}</span>
                                     </td>
                                     
                                     <td style="color: #334155; font-size: 0.9rem;">
                                         {{ order.OrderDate[:16] if order.OrderDate else 'N/A' }}
                                     </td>
                                     
-                                    <td style="color: #10b981; font-size: 0.9rem; font-weight: 500;">
-                                        {{ order.ClaimedDate[:16] if order.OrderStatus == 'Claimed' and order.ClaimedDate else '--' }}
-                                    </td>
-                                    
                                     <td>
-                                        <span style="font-weight: 500;">Staff {{ order.EmpFirstName }}</span><br>
-                                        <span style="font-size: 0.75rem; color: #94a3b8;">
-                                            EMP-{{ "%03d" | format(order.ProcessedByEmpID) if order.ProcessedByEmpID else '000' }}
-                                        </span>
+                                        <span style="font-weight: 500;">Staff {{ order.EmpFirstName }}</span>
                                     </td>
                                     
                                     <td style="text-align: center;">
-                                        <span style="font-weight: 600; color: {% if order.OrderStatus == 'Cancelled' %}#94a3b8{% elif order.PaymentStatus == 'Paid' %}#166534{% else %}#991b1b{% endif %};">
-                                            {% if order.OrderStatus == 'Cancelled' %}
-                                                Voided
-                                            {% else %}
-                                                {{ order.PaymentStatus or 'Unpaid' }}
-                                            {% endif %}
-                                        </span><br>
-                                        <span style="font-size: 0.75rem; color: #64748b;">
-                                            {% if order.OrderStatus == 'Cancelled' %}
-                                                N/A
-                                            {% else %}
-                                                via {{ order.PaymentMethod or 'Counter' }}
-                                            {% endif %}
+                                        <span style="font-weight: 600; color: {% if order.StatusName == 'Cancelled' %}#94a3b8{% else %}#166534{% endif %};">
+                                            {% if order.StatusName == 'Cancelled' %}Voided{% else %}{{ order.PaymentMethod or 'Cash' }}{% endif %}
                                         </span>
                                     </td>
                                     
                                     <td style="font-weight: 600;">₱{{ "%.2f" | format(order.TotalAmount) }}</td>
                                     
                                     <td>
-                                        <span class="badge-status bg-{{ order.OrderStatus | lower }}" data-status="{{ order.OrderStatus | lower }}">
-                                            {{ order.OrderStatus }}
+                                        <span class="badge-status bg-{{ order.StatusName | lower }}" data-status="{{ order.StatusName | lower }}">
+                                            {{ order.StatusName }}
                                         </span>
                                     </td>
                                     
@@ -138,7 +123,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="9" style="text-align: center; padding: 20px; color: #94a3b8;">No orders found in the system.</td>
+                                    <td colspan="8" style="text-align: center; padding: 20px; color: #94a3b8;">No orders found in the system.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -204,7 +189,6 @@
                 
                 const matchesSearch = rowText.includes(searchInput);
                 const matchesStatus = (statusFilter === 'all') || (rowStatus === statusFilter);
-                
                 const matchesDate = !dateFilter || orderDateText.includes(dateFilter);
 
                 if (matchesSearch && matchesStatus && matchesDate) {

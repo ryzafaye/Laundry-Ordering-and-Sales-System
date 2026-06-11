@@ -4,19 +4,33 @@ from models.db import connect_db
 customer_controller = Blueprint('customer', __name__)
 
 def is_logged_in():
-    return 'emp_id' in session
+    return 'user_id' in session
 
-@customer_controller.route('/customers')
+@customer_controller.route('/customers', methods=['GET'])
 def customers():
     if not is_logged_in(): return redirect(url_for('auth.login'))
     
+    search_query = request.args.get('search', '').strip()
+    
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM "CUSTOMERS" ORDER BY "CustomerID" DESC')
+    
+    if search_query:
+        cursor.execute('''
+            SELECT * FROM "CUSTOMERS" 
+            WHERE "CustomerID" LIKE ? 
+               OR "FirstName" LIKE ? 
+               OR "LastName" LIKE ? 
+               OR "ContactNumber" LIKE ?
+            ORDER BY "CustomerID" DESC
+        ''', (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
+    else:
+        cursor.execute('SELECT * FROM "CUSTOMERS" ORDER BY "CustomerID" DESC')
+        
     all_customers = cursor.fetchall()
     conn.close()
     
-    return render_template('customers.html', customers=all_customers)
+    return render_template('customers.html', customers=all_customers, current_search=search_query)
 
 @customer_controller.route('/add_customer', methods=['POST'])
 def add_customer():
@@ -40,10 +54,21 @@ def add_customer():
     try:
         conn = connect_db()
         cursor = conn.cursor()
+        
+        cursor.execute('SELECT "CustomerID" FROM "CUSTOMERS" ORDER BY "CustomerID" DESC LIMIT 1')
+        last_record = cursor.fetchone()
+        
+        if last_record:
+            last_number = int(last_record[0].split('-')[1])
+            new_cust_id = f"CUST-{last_number + 1:03d}"
+        else:
+            new_cust_id = "CUST-001"
+
         cursor.execute("""
-            INSERT INTO "CUSTOMERS" ("FirstName", "LastName", "ContactNumber", "Address")
-            VALUES (?, ?, ?, ?)
-        """, (fname, lname, clean_phone, address))
+            INSERT INTO "CUSTOMERS" ("CustomerID", "FirstName", "LastName", "ContactNumber", "Address")
+            VALUES (?, ?, ?, ?, ?)
+        """, (new_cust_id, fname, lname, clean_phone, address))
+        
         conn.commit()
         conn.close()
         flash('New customer successfully registered!', 'success')
@@ -97,6 +122,6 @@ def delete_customer():
         conn.close()
         flash('Customer record has been deleted.', 'success')
     except Exception as e:
-        flash(f'Delete Error: {str(e)}', 'error')
+        flash('Cannot delete customer: They have existing order records.', 'error')
 
     return redirect(url_for('customer.customers'))

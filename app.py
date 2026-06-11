@@ -26,7 +26,7 @@ app.register_blueprint(admin_controller)
 @app.route('/')
 def index():
     if 'emp_id' in session:
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('admin.dashboard'))
     return redirect(url_for('auth.login'))
 
 if __name__ == '__main__':

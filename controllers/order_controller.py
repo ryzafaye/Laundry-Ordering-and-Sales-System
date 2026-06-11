@@ -1,11 +1,12 @@
 from flask import Blueprint, render_template, redirect, url_for, session, request, flash
 import json
 from models.db import connect_db
+from datetime import datetime, timedelta, timezone
 
 order_controller = Blueprint('order', __name__)
 
 def is_logged_in():
-    return 'emp_id' in session
+    return 'user_id' in session
 
 @order_controller.route('/order')
 def pos():
@@ -15,13 +16,16 @@ def pos():
     conn = connect_db()
     cursor = conn.cursor()
     
-    cursor.execute('SELECT "CustomerID", "FirstName", "LastName" FROM "CUSTOMERS" ORDER BY "FirstName" ASC')
+    cursor.execute('''
+        SELECT * FROM "CUSTOMERS" 
+        ORDER BY "FirstName" ASC
+    ''')
     all_customers = cursor.fetchall()
     
-    cursor.execute('SELECT * FROM "CUSTOMERS" ORDER BY "FirstName" ASC')
-    all_customers = cursor.fetchall()
-    
-    cursor.execute('SELECT * FROM "SERVICES" ORDER BY "ServiceID" ASC')
+    cursor.execute('''
+        SELECT * FROM "SERVICES" 
+        ORDER BY "ServiceID" ASC
+    ''')
     all_services = cursor.fetchall()
     
     conn.close()
@@ -39,9 +43,9 @@ def save_order():
     amount_tendered = request.form.get('amount_tendered')
     basket_data_json = request.form.get('basket_data')
     
-    emp_id = session.get('emp_id')
-    if not emp_id:
-        emp_id = None 
+    user_id = session.get('user_id')
+    if not user_id:
+        user_id = None 
 
     conn = connect_db()
     cursor = conn.cursor()
@@ -53,31 +57,34 @@ def save_order():
         if claiming_method == 'Delivery':
             total_amount += 60.00
             
-        cursor.execute("""
+        PHT = timezone(timedelta(hours=8))
+        ph_time = datetime.now(PHT).strftime('%Y-%m-%d %H:%M:%S')
+            
+        cursor.execute('''
             INSERT INTO "ORDERS" 
-            ("CustomerID", "ProcessedByEmpID", "ClaimingMethod", "OrderStatus", "TotalAmount")
-            VALUES (?, ?, ?, 'Pending', ?)
-        """, (customer_id, emp_id, claiming_method, total_amount))
+            ("CustomerID", "ProcessedByUserID", "ClaimingMethod", "StatusID", "TotalAmount", "OrderDate")
+            VALUES (?, ?, ?, 'S-01', ?, ?)
+        ''', (customer_id, user_id, claiming_method, total_amount, ph_time))
         
         order_id = cursor.lastrowid
         
         for item in basket_items:
-            cursor.execute("""
+            cursor.execute('''
                 INSERT INTO "ORDER_DETAILS" 
                 ("OrderID", "ServiceID", "WeightQuantity", "ServicePrice", "Subtotal")
                 VALUES (?, ?, ?, ?, ?)
-            """, (order_id, item['service_id'], item['qty'], item['rate'], item['subtotal']))
+            ''', (order_id, item['service_id'], item['qty'], item['rate'], item['subtotal']))
         
         if amount_tendered and amount_tendered.strip() != "":
             actual_paid = float(amount_tendered)
         else:
             actual_paid = total_amount
             
-        cursor.execute("""
+        cursor.execute('''
             INSERT INTO "PAYMENTS" 
-            ("OrderID", "PaymentMethod", "PaymentStatus", "AmountPaid")
-            VALUES (?, ?, 'Paid', ?)
-        """, (order_id, payment_method, actual_paid))
+            ("OrderID", "PaymentMethod", "AmountPaid", "PaymentDate")
+            VALUES (?, ?, ?, ?)
+        ''', (order_id, payment_method, actual_paid, ph_time))
         
         conn.commit()
         print(f"SUCCESS: Order #{order_id} has been saved to the database!")
@@ -101,18 +108,12 @@ def cancel_order(order_id):
     try:
         cursor.execute('''
             UPDATE "ORDERS" 
-            SET "OrderStatus" = 'Cancelled' 
-            WHERE "OrderID" = ?
-        ''', (order_id,))
-        
-        cursor.execute('''
-            UPDATE "PAYMENTS" 
-            SET "PaymentStatus" = 'Voided' 
+            SET "StatusID" = 'S-05' 
             WHERE "OrderID" = ?
         ''', (order_id,))
         
         conn.commit()
-        flash(f"Order #{order_id} has been successfully cancelled and payment is voided.", "success")
+        flash(f"Order #{order_id} has been successfully cancelled.", "success")
         print(f"SUCCESS: Order #{order_id} cancelled.")
         
     except Exception as e:

@@ -52,7 +52,7 @@
                     </div>
                 </div>
 
-                <div class="filter-card">
+                <div class="filter-card" style="background:#fff; padding:15px; border-radius:8px; border:1px solid #cbd5e1; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <strong style="color: var(--theme-pink);">Report Coverage:</strong>
                         <span style="color: #64748b; font-size: 0.95rem; margin-left: 10px; font-weight: 500;">
@@ -63,99 +63,97 @@
                             {% endif %}
                         </span>
                     </div>
-                    <form action="{{ url_for('admin.financial_reports') }}" method="POST" class="date-form">
+                    <form action="{{ url_for('admin.financial_reports') }}" method="POST" style="display:flex; gap:10px; align-items:center;">
                         <label style="font-size: 0.9rem; color: #64748b;">From:</label>
-                        <input type="date" name="start_date" class="date-input" value="{{ start_date }}" required>
+                        <input type="date" name="start_date" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px;" value="{{ start_date }}" required>
                         <label style="font-size: 0.9rem; color: #64748b;">To:</label>
-                        <input type="date" name="end_date" class="date-input" value="{{ end_date }}" required>
-                        <button type="submit" class="btn-pink">Generate</button>
+                        <input type="date" name="end_date" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px;" value="{{ end_date }}" required>
+                        <button type="submit" class="btn-pink" style="padding:6px 15px; width:auto;">Generate</button>
                         {% if start_date %}
-                            <a href="{{ url_for('admin.financial_reports') }}" style="color: #64748b; text-decoration: underline; font-size: 0.9rem; margin-left: 10px;">Clear</a>
+                            <a href="{{ url_for('admin.financial_reports') }}" style="color: #ef4444; text-decoration: underline; font-size: 0.9rem; margin-left: 5px;">Clear</a>
                         {% endif %}
                     </form>
                 </div>
                 
-                <div class="top-cards-grid">
-                    <div class="card-stat">
-                        <h3>Total Sales</h3>
-                        <p class="metric-display">₱{{ "%.2f" | format(total_sales) }}</p>
+                <div class="top-cards-grid" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:15px; margin-bottom:20px;">
+                    <div class="ui-card" style="border-top:4px solid #db2777; margin:0;">
+                        <h3 style="font-size:0.9rem; color:#64748b; margin-bottom:5px;">Total Sales</h3>
+                        <p style="font-size:1.4rem; font-weight:bold; color:#0f172a; margin:0;">₱{{ "%.2f" | format(total_sales) }}</p>
                     </div>
-                    <div class="card-stat" style="border-top-color: #3b82f6;">
-                        <h3>Total Orders</h3>
-                        <p class="metric-display">{{ total_orders }}</p>
+                    <div class="ui-card" style="border-top:4px solid #3b82f6; margin:0;">
+                        <h3 style="font-size:0.9rem; color:#64748b; margin-bottom:5px;">Total Orders</h3>
+                        <p style="font-size:1.4rem; font-weight:bold; color:#0f172a; margin:0;">{{ total_orders }}</p>
                     </div>
-                    <div class="card-stat" style="border-top-color: #10b981;">
-                        <h3>Total Customers</h3>
-                        <p class="metric-display">{{ total_customers }}</p>
+                    <div class="ui-card" style="border-top:4px solid #10b981; margin:0;">
+                        <h3 style="font-size:0.9rem; color:#64748b; margin-bottom:5px;">Total Customers</h3>
+                        <p style="font-size:1.4rem; font-weight:bold; color:#0f172a; margin:0;">{{ total_customers }}</p>
                     </div>
-                    <div class="card-stat" style="border-top-color: #f59e0b;">
-                        <h3>Total Payments</h3>
-                        <p class="metric-display">{{ total_payments }}</p>
+                    <div class="ui-card" style="border-top:4px solid #f59e0b; margin:0;">
+                        <h3 style="font-size:0.9rem; color:#64748b; margin-bottom:5px;">Claiming (Pickup)</h3>
+                        <p style="font-size:1.4rem; font-weight:bold; color:#0f172a; margin:0;">
+                            {% for c in claiming_report %}{% if c['ClaimingMethod'] == 'Pickup' %}{{ c['TxnCount'] }}{% endif %}{% endfor %}
+                        </p>
                     </div>
-                    <div class="card-stat" style="border-top-color: #8b5cf6;">
-                        <h3>Avg. Order Value</h3>
-                        <p class="metric-display">₱{{ "%.2f" | format(avg_order_value) }}</p>
+                    <div class="ui-card" style="border-top:4px solid #8b5cf6; margin:0;">
+                        <h3 style="font-size:0.9rem; color:#64748b; margin-bottom:5px;">Avg. Order Value</h3>
+                        <p style="font-size:1.4rem; font-weight:bold; color:#0f172a; margin:0;">₱{{ "%.2f" | format(avg_order_value) }}</p>
                     </div>
                 </div>
 
-                <div class="report-grid">
+                <div class="report-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                     
-                    <div class="report-section">
-                        <h3>Periodic Sales Trend</h3>
-                        <div class="report-content">
-                            <div class="chart-container">
-                                <canvas id="salesChart"></canvas>
+                    <div class="ui-card" style="margin:0;">
+                        <h3 style="border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:15px;">Periodic Sales Trend</h3>
+                        <div style="height:250px;">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="ui-card" style="margin:0;">
+                        <h3 style="border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:15px;">Order Status Distribution</h3>
+                        <div>
+                            {% for stat in status_distribution %}
+                            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f8fafc;">
+                                <span style="color:#475569; font-weight:500;">{{ stat['StatusName'] }}</span>
+                                <span style="font-weight:bold; color:var(--brand-primary);">{{ stat['count'] }} orders</span>
                             </div>
+                            {% else %}
+                            <p style="color:#94a3b8; text-align:center;">No data available.</p>
+                            {% endfor %}
                         </div>
                     </div>
 
-                    <div class="report-section">
-                        <h3>Order Status Distribution</h3>
-                        <div class="report-content">
-                            <div class="mini-stat"><span class="stat-label">Total Generated Orders</span><span class="stat-value">{{ total_orders }}</span></div>
-                            <div class="mini-stat"><span class="stat-label">Completed / Claimed</span><span class="stat-value" style="color: #10b981;">{{ completed_orders }}</span></div>
-                            <div class="mini-stat"><span class="stat-label">Pending / Processing</span><span class="stat-value" style="color: #f59e0b;">{{ pending_orders }}</span></div>
-                            <div class="mini-stat"><span class="stat-label">Cancelled / Voided</span><span class="stat-value" style="color: #ef4444;">{{ cancelled_orders }}</span></div>
-                        </div>
+                    <div class="ui-card" style="margin:0;">
+                        <h3 style="border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:15px;">Top Services Availed</h3>
+                        <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
+                            <thead style="background: none;">
+                                <tr>
+                                    <th style="padding-left: 0; color: #94a3b8;">Service Name</th>
+                                    <th style="text-align: center; color: #94a3b8;">Availed</th>
+                                    <th style="text-align: right; padding-right: 0; color: #94a3b8;">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for srv in service_report %}
+                                <tr>
+                                    <td style="padding-left: 0; font-weight: 500; color: #334155;">{{ srv['ServiceName'] }}</td>
+                                    <td style="text-align: center; font-weight: 600;">{{ srv['TimesAvailed'] }}</td>
+                                    <td style="text-align: right; color: var(--theme-pink); font-weight: 600; padding-right: 0;">₱{{ "%.2f" | format(srv['Revenue']) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" style="text-align: center; color: #94a3b8;">No service data available.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div class="report-section">
-                        <h3>Top Services Availed</h3>
-                        <div class="report-content" style="padding-top: 5px;">
-                            <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
-                                <thead style="background: none; border-bottom: 2px solid #f1f5f9;">
-                                    <tr>
-                                        <th style="padding-left: 0; color: #94a3b8;">Service Name</th>
-                                        <th style="text-align: center; color: #94a3b8;">Times Availed</th>
-                                        <th style="text-align: right; padding-right: 0; color: #94a3b8;">Revenue Generated</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for srv in service_report %}
-                                    <tr>
-                                        <td style="padding-left: 0; font-weight: 500; color: #334155;">{{ srv.ServiceName }}</td>
-                                        <td style="text-align: center; font-weight: 600;">{{ srv.TimesAvailed }}</td>
-                                        <td style="text-align: right; color: var(--theme-pink); font-weight: 600; padding-right: 0;">₱{{ "%.2f" | format(srv.Revenue) }}</td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="3" style="text-align: center; color: #94a3b8;">No service data available.</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="report-section">
-                        <h3>Customer Insights</h3>
-                        <div class="report-content">
-                            <div class="mini-stat"><span class="stat-label">Total Registered Base</span><span class="stat-value">{{ total_customers }}</span></div>
-                            <div class="mini-stat"><span class="stat-label">New Acquisitions (This Month)</span><span class="stat-value" style="color: #3b82f6;">+{{ new_cust_month }}</span></div>
-                            
-                            <h4 style="margin: 20px 0 10px 0; color: var(--theme-pink); font-size: 0.9rem; text-transform: uppercase;">Most Frequent Patrons</h4>
+                    <div class="ui-card" style="margin:0;">
+                        <h3 style="border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:15px;">Most Frequent Customers</h3>
+                        <div>
                             {% for cust in frequent_customers %}
-                                <div class="mini-stat" style="padding: 6px 0; border-bottom: 1px solid #f1f5f9;">
-                                    <span class="stat-label" style="font-size: 0.95rem; color: #334155;">{{ cust.FirstName }} {{ cust.LastName }}</span>
-                                    <span class="stat-value" style="font-size: 0.9rem; background: var(--theme-pink-light); color: var(--theme-pink); padding: 2px 8px; border-radius: 12px;">{{ cust.OrderCount }} orders</span>
+                                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f8fafc;">
+                                    <span style="color:#334155; font-weight:500;">{{ cust['FirstName'] }} {{ cust['LastName'] }}</span>
+                                    <span style="font-size: 0.85rem; background: #fce7f3; color: #db2777; padding: 3px 10px; border-radius: 12px; font-weight:bold;">{{ cust['OrderCount'] }} orders (₱{{ "%.2f" | format(cust['TotalSpent']) }})</span>
                                 </div>
                             {% else %}
                                 <p style="color: #94a3b8; font-size: 0.85rem; text-align: center;">No customer data available.</p>
@@ -163,54 +161,52 @@
                         </div>
                     </div>
 
-                    <div class="report-section">
-                        <h3>Employee Performance</h3>
-                        <div class="report-content" style="padding-top: 5px;">
-                            <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
-                                <thead style="background: none; border-bottom: 2px solid #f1f5f9;">
-                                    <tr>
-                                        <th style="padding-left: 0; color: #94a3b8;">Staff Name</th>
-                                        <th style="text-align: right; padding-right: 0; color: #94a3b8;">Orders Processed</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for emp in emp_report %}
-                                    <tr>
-                                        <td style="padding-left: 0; font-weight: 500;">{{ emp.FirstName }}</td>
-                                        <td style="text-align: right; font-weight: 700; color: var(--theme-pink); padding-right: 0;">{{ emp.OrdersProcessed }}</td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="2" style="text-align: center; color: #94a3b8;">No employee data available.</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="ui-card" style="margin:0;">
+                        <h3 style="border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:15px;">Employee Performance (Revenue)</h3>
+                        <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
+                            <thead style="background: none;">
+                                <tr>
+                                    <th style="padding-left: 0; color: #94a3b8;">Staff Name</th>
+                                    <th style="text-align: center; color: #94a3b8;">Processed</th>
+                                    <th style="text-align: right; padding-right: 0; color: #94a3b8;">Generated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for emp in emp_report %}
+                                <tr>
+                                    <td style="padding-left: 0; font-weight: 500;">{{ emp['FirstName'] }}</td>
+                                    <td style="text-align: center; font-weight: 600;">{{ emp['OrdersProcessed'] }}</td>
+                                    <td style="text-align: right; font-weight: 700; color: #10b981; padding-right: 0;">₱{{ "%.2f" | format(emp['RevenueGenerated']) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" style="text-align: center; color: #94a3b8;">No employee data available.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div class="report-section">
-                        <h3>Payment Collections</h3>
-                        <div class="report-content" style="padding-top: 5px;">
-                            <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
-                                <thead style="background: none; border-bottom: 2px solid #f1f5f9;">
-                                    <tr>
-                                        <th style="padding-left: 0; color: #94a3b8;">Payment Method</th>
-                                        <th style="text-align: center; color: #94a3b8;">Txn Count</th>
-                                        <th style="text-align: right; padding-right: 0; color: #94a3b8;">Amount Collected</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for pay in payment_report %}
-                                    <tr>
-                                        <td style="padding-left: 0; font-weight: 500;">{{ pay.PaymentMethod }}</td>
-                                        <td style="text-align: center; font-weight: 600;">{{ pay.TxnCount }}</td>
-                                        <td style="text-align: right; color: #166534; font-weight: 600; padding-right: 0;">₱{{ "%.2f" | format(pay.TotalAmount) }}</td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="3" style="text-align: center; color: #94a3b8;">No payment data available.</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="ui-card" style="margin:0;">
+                        <h3 style="border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:15px;">Payment Collections</h3>
+                        <table class="basket-table" style="margin: 0; box-shadow: none; border: none;">
+                            <thead style="background: none;">
+                                <tr>
+                                    <th style="padding-left: 0; color: #94a3b8;">Payment Method</th>
+                                    <th style="text-align: center; color: #94a3b8;">Transactions</th>
+                                    <th style="text-align: right; padding-right: 0; color: #94a3b8;">Amount Collected</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pay in payment_report %}
+                                <tr>
+                                    <td style="padding-left: 0; font-weight: 500;">{{ pay['PaymentMethod'] }}</td>
+                                    <td style="text-align: center; font-weight: 600;">{{ pay['TxnCount'] }}</td>
+                                    <td style="text-align: right; color: #166534; font-weight: 600; padding-right: 0;">₱{{ "%.2f" | format(pay['TotalAmount']) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" style="text-align: center; color: #94a3b8;">No payment data available.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
 
                 </div>
@@ -229,7 +225,12 @@
                 labels: ['Today', 'This Week', 'This Month', 'This Year'],
                 datasets: [{
                     label: 'Revenue (₱)',
-                    data: [{{ sales_today }}, {{ sales_week }}, {{ sales_month }}, {{ sales_year }}],
+                    data: [
+                    Number('{{ sales_today }}'), 
+                    Number('{{ sales_week }}'), 
+                    Number('{{ sales_month }}'), 
+                    Number('{{ sales_year }}')
+                    ],
                     backgroundColor: '#db2777',
                     borderRadius: 4
                 }]

@@ -3,23 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <title>Customers - Laundrify</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='dashboard-style.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='customers.css') }}"
-    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard-style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='customers.css') }}" />
   </head>
   <body>
     <header class="top-navbar">
       <div class="brand-wrapper">
-        <img
-          src="{{ url_for('static', filename='images/laundrify_logo.png') }}"
-          alt="Logo"
-          class="nav-logo-img"
-        />
+        <img src="{{ url_for('static', filename='images/laundrify_logo.png') }}" alt="Logo" class="nav-logo-img" />
         <div class="logo-text">LAUNDRIFY</div>
       </div>
       <div class="date-display" id="liveDate">Loading date...</div>
@@ -52,57 +42,44 @@
                     <h1>Customer Management</h1>
                     <div class="dashboard-staff-info">
                         <img src="{{ url_for('static', filename='images/customer.png') }}" alt="User Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name') }} ({{ session.get('role') }})</strong></span>
                     </div>
                 </div>
-          </div>
-          {% with messages = get_flashed_messages(with_categories=true) %} {% if
-          messages %} {% for category, message in messages %} {% if category ==
-          'success' %}
-          <div
-            style="
-              padding: 15px;
-              margin-bottom: 20px;
-              border-radius: 6px;
-              font-weight: bold;
-              background-color: #dcfce7;
-              color: #15803d;
-              border: 1px solid #bbf7d0;
-            "
-          >
-            {{ message }}
-          </div>
-          {% else %}
-          <div
-            style="
-              padding: 15px;
-              margin-bottom: 20px;
-              border-radius: 6px;
-              font-weight: bold;
-              background-color: #fef2f2;
-              color: #ef4444;
-              border: 1px solid #fee2e2;
-            "
-          >
-            {{ message }}
-          </div>
-          {% endif %} {% endfor %} {% endif %} {% endwith %}
+          
+          {% with messages = get_flashed_messages(with_categories=true) %} 
+            {% if messages %} 
+              {% for category, message in messages %} 
+                {% if category == 'success' %}
+                <div style="padding: 15px; margin-bottom: 20px; border-radius: 6px; font-weight: bold; background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">
+                  {{ message }}
+                </div>
+                {% else %}
+                <div style="padding: 15px; margin-bottom: 20px; border-radius: 6px; font-weight: bold; background-color: #fef2f2; color: #ef4444; border: 1px solid #fee2e2;">
+                  {{ message }}
+                </div>
+                {% endif %} 
+              {% endfor %} 
+            {% endif %} 
+          {% endwith %}
+          
           <div class="customer-table-card">
             <div class="table-header-row">
               <h3>Registered Customer Records</h3>
               <div class="header-controls">
-                <div class="search-box">
-                  <input
-                    type="text"
-                    id="searchCustomer"
-                    class="form-control"
-                    placeholder="Search name or ID..."
-                    oninput="filterCustomers()"
-                  />
-                </div>
-                <button class="btn-pink-sm" onclick="openModal()">
-                  + Add Customer
-                </button>
+                
+                <form action="{{ url_for('customer.customers') }}" method="GET" class="modern-search-form" style="width: 350px;">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                        
+                        <input type="text" name="search" class="search-control" placeholder="Search name, ID, or phone... (Press Enter)" value="{{ current_search }}">
+                        
+                        {% if current_search %}
+                        <a href="{{ url_for('customer.customers') }}" class="clear-icon" title="Clear Search">&times;</a>
+                        {% endif %}
+                    </div>
+                </form>
+
+                <button class="btn-pink-sm" onclick="openModal()">+ Add Customer</button>
               </div>
             </div>
 
@@ -120,11 +97,7 @@
                 <tbody>
                   {% for c in customers %}
                   <tr>
-                    <td>
-                      <strong
-                        >CUST-{{ "%03d" | format(c['CustomerID']) }}</strong
-                      >
-                    </td>
+                    <td><strong>{{ c['CustomerID'] }}</strong></td>
                     <td>{{ c['FirstName'] }} {{ c['LastName'] }}</td>
                     <td>{{ c['ContactNumber'] }}</td>
                     <td>{{ c['Address'] }}</td>
@@ -145,12 +118,8 @@
                   </tr>
                   {% else %}
                   <tr>
-                    <td
-                      colspan="5"
-                      style="text-align: center; color: #64748b; padding: 20px"
-                    >
-                      No registered customers yet. Click "+ Add Customer" to
-                      start.
+                    <td colspan="5" style="text-align: center; color: #64748b; padding: 20px">
+                      No customer records found.
                     </td>
                   </tr>
                   {% endfor %}
@@ -185,12 +154,12 @@
 
           <div class="form-group">
             <label for="phone">Contact Number</label>
-            <input type="text" id="phone" name="phone" class="form-control" placeholder="09XX-XXX-XXXX" required />
+            <input type="text" id="phone" name="phone" class="form-control" placeholder="e.g. 09123456789" maxlength="11" pattern="09[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required />            
             <div class="field-error-msg" id="phone-error"></div>
           </div>
 
           <div class="form-group">
-            <label for="address">Complete Delivery Address</label>
+            <label for="address">Address</label>
             <textarea id="address" name="address" class="form-control" rows="3" placeholder="House/Bldg No., Street, Barangay, City/Province" style="resize: none" required></textarea>
             <div class="field-error-msg" id="address-error"></div>
           </div>
@@ -225,7 +194,7 @@
 
           <div class="form-group">
             <label for="edit-phone">Contact Number</label>
-            <input type="text" id="edit-phone" name="edit_phone" class="form-control" required />
+            <input type="text" id="edit-phone" name="edit_phone" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required />            
             <div class="field-error-msg" id="edit-phone-error"></div>
           </div>
 
@@ -263,160 +232,109 @@
     </div>
 
     <script>
-    const dateOptions = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    };
+    const dateOptions = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
     document.getElementById("liveDate").textContent = new Date().toLocaleDateString("en-US", dateOptions);
 
     const modal = document.getElementById("customerModal");
-    
-    function openModal() {
-        modal.style.display = "flex";
-    }
-
-    function closeModal() {
-        modal.style.display = "none";
-    }
+    function openModal() { modal.style.display = "flex"; }
+    function closeModal() { modal.style.display = "none"; }
 
     const editModal = document.getElementById("editCustomerModal");
 
     function prepareEditModal(btn) {
-        const id = btn.getAttribute('data-id');
-        const fname = btn.getAttribute('data-fname');
-        const lname = btn.getAttribute('data-lname');
-        const phone = btn.getAttribute('data-phone');
-        const address = btn.getAttribute('data-address');
-
-        document.getElementById('edit-cust-id').value = id;
-        document.getElementById('edit-fname').value = fname;
-        document.getElementById('edit-lname').value = lname;
-        document.getElementById('edit-phone').value = phone;
-        document.getElementById('edit-address').value = address;
-
+        document.getElementById('edit-cust-id').value = btn.getAttribute('data-id');
+        document.getElementById('edit-fname').value = btn.getAttribute('data-fname');
+        document.getElementById('edit-lname').value = btn.getAttribute('data-lname');
+        document.getElementById('edit-phone').value = btn.getAttribute('data-phone');
+        document.getElementById('edit-address').value = btn.getAttribute('data-address');
         editModal.style.display = "flex";
     }
 
-    function closeEditModal() {
-        editModal.style.display = "none";
-    }
+    function closeEditModal() { editModal.style.display = "none"; }
 
     function prepareDeleteModal(btn) {
-        const id = btn.getAttribute('data-id');
-        const name = btn.getAttribute('data-name');
-
-        document.getElementById('delete-cust-id').value = id;
-        document.getElementById('delete-name-display').textContent = name;
-
+        document.getElementById('delete-cust-id').value = btn.getAttribute('data-id');
+        document.getElementById('delete-name-display').textContent = btn.getAttribute('data-name');
         document.getElementById("deleteConfirmModal").style.display = "flex";
     }
 
-    function closeDeleteModal() {
-        document.getElementById("deleteConfirmModal").style.display = "none";
+    function closeDeleteModal() { document.getElementById("deleteConfirmModal").style.display = "none"; }
+
+    function setFieldError(inputId, errorId, message) {
+        const inputField = document.getElementById(inputId);
+        const errorDiv = document.getElementById(errorId);
+        inputField.classList.add('is-invalid'); 
+        errorDiv.textContent = message; 
+        errorDiv.style.display = 'block'; 
     }
 
-    function filterCustomers() {
-        const query = document.getElementById("searchCustomer").value.toLowerCase();
-        const rows = document.querySelectorAll("#customerTable tbody tr");
-
-        rows.forEach((row) => {
-            const rowText = row.textContent.toLowerCase();
-            if (rowText.includes(query)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+    function clearErrors(formId) {
+        const form = document.getElementById(formId);
+        form.querySelectorAll('.form-control').forEach(input => input.classList.remove('is-invalid'));
+        form.querySelectorAll('.field-error-msg').forEach(div => {
+            div.textContent = '';
+            div.style.display = 'none';
         });
     }
 
-function setFieldError(inputId, errorId, message) {
-    const inputField = document.getElementById(inputId);
-    const errorDiv = document.getElementById(errorId);
-    
-    inputField.classList.add('is-invalid'); 
-    errorDiv.textContent = message; 
-    errorDiv.style.display = 'block'; 
-}
+    function validateCustomerForm(formId, prefix = '') {
+        clearErrors(formId);
+        let isValid = true;
 
-function clearErrors(formId) {
-    const form = document.getElementById(formId);
-    form.querySelectorAll('.form-control').forEach(input => input.classList.remove('is-invalid'));
-    form.querySelectorAll('.field-error-msg').forEach(div => {
-        div.textContent = '';
-        div.style.display = 'none';
+        const fname = document.getElementById(prefix + 'fname').value.trim();
+        const lname = document.getElementById(prefix + 'lname').value.trim();
+        const phone = document.getElementById(prefix + 'phone').value.trim();
+        const address = document.getElementById(prefix + 'address').value.trim();
+
+        const lettersOnly = /^[A-Za-zÑñ\s.]+$/;
+        const numbersOnly = /^\d+$/;
+
+        if (!fname) {
+            setFieldError(prefix + 'fname', prefix + 'fname-error', 'First name is required.');
+            isValid = false;
+        } else if (!lettersOnly.test(fname)) {
+            setFieldError(prefix + 'fname', prefix + 'fname-error', 'Numbers and special characters are not allowed in names.');
+            isValid = false;
+        }
+
+        if (!lname) {
+            setFieldError(prefix + 'lname', prefix + 'lname-error', 'Last name is required.');
+            isValid = false;
+        } else if (!lettersOnly.test(lname)) {
+            setFieldError(prefix + 'lname', prefix + 'lname-error', 'Numbers and special characters are not allowed in names.');
+            isValid = false;
+        }
+
+        const cleanPhone = phone.replace(/[- ]/g, ''); 
+        if (!phone) {
+            setFieldError(prefix + 'phone', prefix + 'phone-error', 'Contact number is required.');
+            isValid = false;
+        } else if (!numbersOnly.test(cleanPhone)) {
+            setFieldError(prefix + 'phone', prefix + 'phone-error', 'Letters are not allowed in contact number.');
+            isValid = false;
+        } else if (cleanPhone.length !== 11) {
+            setFieldError(prefix + 'phone', prefix + 'phone-error', `Must be exactly 11 digits (You typed ${cleanPhone.length} digits).`);
+            isValid = false;
+        } else if (!cleanPhone.startsWith('09')) {
+            setFieldError(prefix + 'phone', prefix + 'phone-error', 'Contact number must start with 09.');
+            isValid = false;
+        }
+
+        if (!address) {
+            setFieldError(prefix + 'address', prefix + 'address-error', 'Complete address is required.');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    document.getElementById('addCustomerForm').addEventListener('submit', function(event) {
+        if (!validateCustomerForm('addCustomerForm', '')) event.preventDefault(); 
     });
-}
 
-function validateCustomerForm(formId, prefix = '') {
-    clearErrors(formId);
-    let isValid = true;
-
-    const fname = document.getElementById(prefix + 'fname').value.trim();
-    const lname = document.getElementById(prefix + 'lname').value.trim();
-    const phone = document.getElementById(prefix + 'phone').value.trim();
-    const address = document.getElementById(prefix + 'address').value.trim();
-
-    const lettersOnly = /^[A-Za-zÑñ\s.]+$/;
-    const numbersOnly = /^\d+$/;
-
-    if (!fname) {
-        setFieldError(prefix + 'fname', prefix + 'fname-error', 'First name is required.');
-        isValid = false;
-    } else if (!lettersOnly.test(fname)) {
-        setFieldError(prefix + 'fname', prefix + 'fname-error', 'Numbers and special characters are not allowed in names.');
-        isValid = false;
-    }
-
-    if (!lname) {
-        setFieldError(prefix + 'lname', prefix + 'lname-error', 'Last name is required.');
-        isValid = false;
-    } else if (!lettersOnly.test(lname)) {
-        setFieldError(prefix + 'lname', prefix + 'lname-error', 'Numbers and special characters are not allowed in names.');
-        isValid = false;
-    }
-
-
-    const cleanPhone = phone.replace(/[- ]/g, ''); 
-    if (!phone) {
-        setFieldError(prefix + 'phone', prefix + 'phone-error', 'Contact number is required.');
-        isValid = false;
-    } else if (!numbersOnly.test(cleanPhone)) {
-        setFieldError(prefix + 'phone', prefix + 'phone-error', 'Letters are not allowed in contact number.');
-        isValid = false;
-    } else if (cleanPhone.length !== 11) {
-        setFieldError(prefix + 'phone', prefix + 'phone-error', `Must be exactly 11 digits (You typed ${cleanPhone.length} digits).`);
-        isValid = false;
-    } else if (!cleanPhone.startsWith('09')) {
-        setFieldError(prefix + 'phone', prefix + 'phone-error', 'Contact number must start with 09.');
-        isValid = false;
-    }
-
-
-    if (!address) {
-        setFieldError(prefix + 'address', prefix + 'address-error', 'Complete address is required.');
-        isValid = false;
-    }
-
-    return isValid;
-}
-
-
-document.getElementById('addCustomerForm').addEventListener('submit', function(event) {
-    const isFormValid = validateCustomerForm('addCustomerForm', '');
-    if (!isFormValid) {
-        event.preventDefault(); 
-    }
-});
-
-
-document.getElementById('editCustomerForm').addEventListener('submit', function(event) {
-    const isFormValid = validateCustomerForm('editCustomerForm', 'edit-');
-    if (!isFormValid) {
-        event.preventDefault(); 
-    }
-});
-</script>
+    document.getElementById('editCustomerForm').addEventListener('submit', function(event) {
+        if (!validateCustomerForm('editCustomerForm', 'edit-')) event.preventDefault(); 
+    });
+    </script>
   </body>
 </html>
