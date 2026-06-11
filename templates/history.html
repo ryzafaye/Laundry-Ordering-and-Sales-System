@@ -43,54 +43,38 @@
                     <h1 style="margin: 0;">Transaction History</h1>
                     <div class="dashboard-staff-info">
                         <img src="{{ url_for('static', filename='images/user.png') }}" alt="Staff Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name') }} ({{ session.get('role') }})</strong></span>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
                     </div>
                 </div>
                 
                 <div class="history-table-card ui-card" style="margin-top: 20px;">
                     <div class="history-controls">
-                        <form action="{{ url_for('history.transaction_history') }}" method="GET" class="modern-search-form" style="width: 100%;">
-                            <div class="search-input-wrapper" style="width: 350px;">
-                                <svg class="search-icon" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
-                                
-                                <input type="text" name="search" class="search-control" placeholder="Search ID or Customer... (Press Enter)" value="{{ current_search }}">
-                                
-                                {% if current_search %}
-                                <a href="{{ url_for('history.transaction_history') }}" class="clear-icon" title="Clear Search">&times;</a>
-                                {% endif %}
-                            </div>
-                            
-                            <input type="date" name="date" class="filter-select" value="{{ current_date }}" onchange="this.form.submit()">
-                            
-                            <select name="status" class="filter-select" onchange="this.form.submit()">
-                                <option value="all" {% if current_status == 'all' %}selected{% endif %}>Status: All</option>
-                                <option value="paid" {% if current_status == 'paid' %}selected{% endif %}>Paid</option>
-                                <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-                            </select>
-                        </form>
+                        <div class="search-container" style="display: flex; gap: 10px;">
+                            <input type="text" id="searchHistory" class="search-input" placeholder="Search Customer or Order ID..." oninput="filterHistory()" style="width: 300px;">
+                            <input type="date" id="dateFilter" class="filter-select" onchange="filterHistory()">
+                        </div>
+                        <div id="historyCount" style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Showing records...</div>
                     </div>
 
                     <div class="table-wrapper" style="margin-top: 15px;">
                         <table class="basket-table" id="historyTable">
                             <thead>
                                 <tr>
-                                    <th>Trans ID</th>
                                     <th>Customer Details</th>
                                     <th>Services Availed</th>
                                     <th>Order Date</th>
                                     <th>Date Claimed</th>
                                     <th>Pay Method</th>
-                                    <th>Status</th>
                                     <th style="text-align: right;">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for record in records %}
-                                <tr>
-                                    <td><strong>TRX-{{ "%03d" | format(record['OrderID']) }}</strong></td>
+                                {% if record['Status'] != 'Cancelled' %}
+                                <tr data-date="{{ record['OrderDate'][:10] }}">
                                     <td>
                                         <span style="color: #64748b; font-size: 0.8rem;">ORD-{{ "%03d" | format(record['OrderID']) }}</span><br>
-                                        {{ record['CustomerName'] }}
+                                        <strong>{{ record['CustomerName'] }}</strong>
                                     </td>
                                     
                                     <td class="services-cell" style="color: #475569; line-height: 1.6;">{{ record['ServiceNames'] | safe }}</td>
@@ -100,22 +84,15 @@
                                     
                                     <td style="font-weight: 500; color: #334155;">{{ record['PaymentMethod'] }}</td>
                                     
-                                    <td>
-                                        {% if record['Status'] == 'Cancelled' %}
-                                            <span class="badge badge-cancelled">Cancelled</span>
-                                        {% else %}
-                                            <span class="badge badge-paid">Paid</span>
-                                        {% endif %}
-                                    </td>
-                                    
-                                    <td style="text-align: right; font-weight: bold; font-size: 1.05rem; color: {% if record['Status'] == 'Cancelled' %}#ef4444{% else %}#15803d{% endif %};">
+                                    <td style="text-align: right; font-weight: bold; font-size: 1.05rem; color: #15803d;">
                                         ₱{{ "%.2f" | format(record['AmountPaid']) }}
                                     </td>
                                 </tr>
+                                {% endif %}
                                 {% else %}
                                 <tr>
-                                    <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
-                                        No transaction records found matching your criteria.
+                                    <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">
+                                        No transactions found.
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -130,6 +107,33 @@
     <script>
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+
+        function filterHistory() {
+            const query = document.getElementById('searchHistory').value.toLowerCase();
+            const dateFilter = document.getElementById('dateFilter').value;
+            const rows = document.querySelectorAll('#historyTable tbody tr');
+            
+            let visibleCount = 0;
+            rows.forEach(row => {
+                if(row.children.length === 1) return;
+
+                const rowText = row.textContent.toLowerCase();
+                const rowDate = row.getAttribute('data-date'); 
+
+                const matchesSearch = rowText.includes(query);
+                const matchesDate = (dateFilter === '') || (rowDate === dateFilter);
+
+                if (matchesSearch && matchesDate) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            document.getElementById('historyCount').innerHTML = `Showing <strong>${visibleCount}</strong> records`;
+        }
+        
+        window.onload = filterHistory;
     </script>
 </body>
 </html>
