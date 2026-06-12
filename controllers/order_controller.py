@@ -59,21 +59,28 @@ def save_order():
             
         PHT = timezone(timedelta(hours=8))
         ph_time = datetime.now(PHT).strftime('%Y-%m-%d %H:%M:%S')
+
+        cursor.execute('SELECT "OrderID" FROM "ORDERS" ORDER BY "OrderID" DESC LIMIT 1')
+        last_record = cursor.fetchone()
+        
+        if last_record:
+            last_number = int(last_record[0].split('-')[1])
+            new_order_id = f"ORD-{last_number + 1:03d}"
+        else:
+            new_order_id = "ORD-001"
             
         cursor.execute('''
             INSERT INTO "ORDERS" 
-            ("CustomerID", "ProcessedByUserID", "ClaimingMethod", "StatusID", "TotalAmount", "OrderDate")
-            VALUES (?, ?, ?, 'S-01', ?, ?)
-        ''', (customer_id, user_id, claiming_method, total_amount, ph_time))
-        
-        order_id = cursor.lastrowid
+            ("OrderID", "CustomerID", "ProcessedByUserID", "ClaimingMethod", "StatusID", "TotalAmount", "OrderDate")
+            VALUES (?, ?, ?, ?, 'S-01', ?, ?)
+        ''', (new_order_id, customer_id, user_id, claiming_method, total_amount, ph_time))
         
         for item in basket_items:
             cursor.execute('''
                 INSERT INTO "ORDER_DETAILS" 
                 ("OrderID", "ServiceID", "WeightQuantity", "ServicePrice", "Subtotal")
                 VALUES (?, ?, ?, ?, ?)
-            ''', (order_id, item['service_id'], item['qty'], item['rate'], item['subtotal']))
+            ''', (new_order_id, item['service_id'], item['qty'], item['rate'], item['subtotal']))
         
         if amount_tendered and amount_tendered.strip() != "":
             actual_paid = float(amount_tendered)
@@ -84,10 +91,9 @@ def save_order():
             INSERT INTO "PAYMENTS" 
             ("OrderID", "PaymentMethod", "AmountPaid", "PaymentDate")
             VALUES (?, ?, ?, ?)
-        ''', (order_id, payment_method, actual_paid, ph_time))
+        ''', (new_order_id, payment_method, actual_paid, ph_time))
         
         conn.commit()
-        print(f"SUCCESS: Order #{order_id} has been saved to the database!")
         
     except Exception as e:
         print(f"DATABASE ERROR: {e}")
@@ -97,7 +103,7 @@ def save_order():
         
     return redirect(url_for('order.pos'))
 
-@order_controller.route('/cancel_order/<int:order_id>', methods=['POST'])
+@order_controller.route('/cancel_order/<string:order_id>', methods=['POST'])
 def cancel_order(order_id):
     if not is_logged_in():
         return redirect(url_for('auth.login'))
@@ -111,13 +117,12 @@ def cancel_order(order_id):
             SET "StatusID" = 'S-05' 
             WHERE "OrderID" = ?
         ''', (order_id,))
-        
+                
         conn.commit()
-        flash(f"Order #{order_id} has been successfully cancelled.", "success")
-        print(f"SUCCESS: Order #{order_id} cancelled.")
+        flash(f"Order {order_id} has been successfully cancelled.", "success")
         
     except Exception as e:
-        print(f"DATABASE ERROR CANCELLING ORDER: {e}")
+        print(f"DATABASE ERROR: {e}")
         flash("Failed to cancel the order due to a system error.", "error")
         
     finally:

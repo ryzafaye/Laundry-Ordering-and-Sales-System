@@ -96,7 +96,7 @@
                             <tbody>
                                 {% for order in recent_orders %}
                                 <tr>
-                                    <td><strong>ORD-{{ "%03d" | format(order['OrderID']) }}</strong></td>
+                                    <td><strong>{{ order['OrderID'] }}</strong></td>
                                     <td>{{ order['CustomerName'] }}</td>
                                     <td style="font-size: 0.85rem; color: #475569;">{{ order['Services'] }}</td>
                                     <td style="font-weight: bold;">₱{{ "%.2f" | format(order['TotalAmount']) }}</td>
