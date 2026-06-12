@@ -66,7 +66,7 @@ def create_tables():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "ORDERS" (
-            "OrderID" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "OrderID" TEXT PRIMARY KEY,
             "CustomerID" TEXT NOT NULL,
             "ProcessedByUserID" TEXT NOT NULL,
             "StatusID" TEXT NOT NULL,
@@ -82,7 +82,7 @@ def create_tables():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "ORDER_DETAILS" (
-            "OrderID" INTEGER NOT NULL,
+            "OrderID" TEXT NOT NULL,
             "ServiceID" TEXT NOT NULL,
             "WeightQuantity" REAL NOT NULL,
             "ServicePrice" REAL NOT NULL,
@@ -95,7 +95,7 @@ def create_tables():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "PAYMENTS" (
-            "OrderID" INTEGER NOT NULL,
+            "OrderID" 'TEXT' NOT NULL,
             "AmountPaid" REAL NOT NULL,
             "PaymentMethod" TEXT NOT NULL,
             "PaymentDate" TEXT DEFAULT CURRENT_TIMESTAMP,

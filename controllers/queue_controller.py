@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, session, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, session, request
 from models.db import connect_db
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import json 
 
 queue_controller = Blueprint('queue', __name__)
@@ -82,35 +82,37 @@ def active_orders():
     
     return render_template('queue.html', orders=formatted_orders, current_search=search_query, current_status=status_filter)
 
-@queue_controller.route('/cancel_order/<int:order_id>', methods=['POST'])
+@queue_controller.route('/cancel_order/<string:order_id>', methods=['POST'])
 def cancel_order(order_id):
     if not is_logged_in():
         return redirect(url_for('auth.login'))
         
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute('UPDATE "ORDERS" SET "StatusID" = \'S-05\' WHERE "OrderID" = ? AND "StatusID" = \'S-01\'', (order_id,))
+    cursor.execute('UPDATE "ORDERS" SET "StatusID" = \'S-05\' WHERE "OrderID" = ?', (order_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('queue.active_orders'))
 
-@queue_controller.route('/update_status/<int:order_id>', methods=['POST'])
+@queue_controller.route('/update_status/<string:order_id>', methods=['POST'])
 def update_status(order_id):
     if not is_logged_in():
-        return jsonify({'success': False})
+        return redirect(url_for('auth.login'))
         
-    new_status_id = request.form.get('status_id')
+    new_status_id = request.form.get('status_id') or request.form.get('status')
     
     conn = connect_db()
     cursor = conn.cursor()
     
     if new_status_id == 'S-04':
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute('UPDATE "ORDERS" SET "StatusID" = ?, "ClaimedDate" = ? WHERE "OrderID" = ?', (new_status_id, current_time, order_id))
+        PHT = timezone(timedelta(hours=8))
+        ph_time = datetime.now(PHT).strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.execute('UPDATE "ORDERS" SET "StatusID" = ?, "ClaimedDate" = ? WHERE "OrderID" = ?', (new_status_id, ph_time, order_id))
     else:
         cursor.execute('UPDATE "ORDERS" SET "StatusID" = ? WHERE "OrderID" = ?', (new_status_id, order_id))
         
     conn.commit()
     conn.close()
     
-    return jsonify({'success': True})
+    return redirect(url_for('queue.active_orders'))

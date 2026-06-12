@@ -225,3 +225,8 @@ select.status-select option {
 select.status-select option:hover { 
     background-color: #e2e8f0; 
 }
+
+select.status-select option[value="S-01"] { background-color: #fef08a; color: #854d0e; font-weight: bold; }
+select.status-select option[value="S-02"] { background-color: #bfdbfe; color: #1e3a8a; font-weight: bold; }
+select.status-select option[value="S-03"] { background-color: #bbf7d0; color: #14532d; font-weight: bold; }
+select.status-select option[value="S-04"] { background-color: #e2e8f0; color: #475569; font-weight: bold; }
