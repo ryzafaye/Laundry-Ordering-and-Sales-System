@@ -88,7 +88,7 @@
                             <tbody>
                                 {% for order in orders %}
                                 <tr>
-                                    <td><strong>ORD-{{ "%03d" | format(order.OrderID) }}</strong></td>
+                                    <td><strong>ORD-{{ order.OrderID }}</strong></td>
                                     
                                     <td>
                                         {{ order.CustFirstName }} {{ order.CustLastName }}<br>
@@ -118,9 +118,7 @@
                                     </td>
                                     
                                     <td style="text-align: center;">
-                                        <button class="btn-action-sm" onclick='openDetailsModal("ORD-{{ "%03d" | format(order.OrderID) }}", "{{ order.CustFirstName }} {{ order.CustLastName }}", {{ order.ServicesJSON | safe }}, "₱{{ "%.2f" | format(order.TotalAmount) }}")'>View Details</button>
-                                    </td>
-                                </tr>
+                                        <button class="btn-action-sm" onclick='openDetailsModal("{{order.OrderID}}", "{{ order.CustFirstName }} {{ order.CustLastName }}", {{ order.ServicesJSON | safe }}, "₱{{ "%.2f" | format(order.TotalAmount) }}")'>View Details</button>
                                 {% else %}
                                 <tr>
                                     <td colspan="8" style="text-align: center; padding: 20px; color: #94a3b8;">No orders found in the system.</td>

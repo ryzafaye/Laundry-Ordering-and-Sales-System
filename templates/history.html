@@ -43,7 +43,7 @@
                     <h1 style="margin: 0;">Transaction History</h1>
                     <div class="dashboard-staff-info">
                         <img src="{{ url_for('static', filename='images/user.png') }}" alt="Staff Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name') }} ({{ session.get('position') }})</strong></span>
                     </div>
                 </div>
                 
@@ -73,7 +73,7 @@
                                 {% if record['Status'] != 'Cancelled' %}
                                 <tr data-date="{{ record['OrderDate'][:10] }}">
                                     <td>
-                                        <span style="color: #64748b; font-size: 0.8rem;">ORD-{{ "%03d" | format(record['OrderID']) }}</span><br>
+                                        <span style="color: #64748b; font-size: 0.8rem;">{{ record['OrderID'] }}</span><br>
                                         <strong>{{ record['CustomerName'] }}</strong>
                                     </td>
                                     
