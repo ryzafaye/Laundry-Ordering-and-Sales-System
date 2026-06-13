@@ -42,7 +42,7 @@
                     <h1>System Dashboard Overview</h1>
                     <div class="dashboard-staff-info">
                         <img src="{{ url_for('static', filename='images/user.png') }}" alt="User Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name', 'Active User') }} ({{ session.get('position', 'Staff') }})</strong></span>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name', 'Active User') }} ({{ session.get('role', 'Staff') }})</strong></span>
                     </div>
                 </div>
                 
@@ -89,18 +89,18 @@
                                     <th>Customer</th>
                                     <th>Service</th>
                                     <th>Amount</th>
-                                    <th>Payment</th>
+                                    <th>Pay Method</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for order in recent_orders %}
                                 <tr>
-                                    <td><strong>ORD-{{ "%03d" | format(order['OrderID']) }}</strong></td>
+                                    <td><strong>{{ order['OrderID'] }}</strong></td>
                                     <td>{{ order['CustomerName'] }}</td>
                                     <td style="font-size: 0.85rem; color: #475569;">{{ order['Services'] }}</td>
                                     <td style="font-weight: bold;">₱{{ "%.2f" | format(order['TotalAmount']) }}</td>
-                                    <td><span class="badge-status status-{{ order['PaymentStatus'] | lower }}">{{ order['PaymentStatus'] }}</span></td>
+                                    <td><span class="badge-status status-completed">{{ order['PaymentMethod'] }}</span></td>
                                     <td><span class="badge-status status-{{ order['OrderStatus'] | lower }}">{{ order['OrderStatus'] }}</span></td>
                                 </tr>
                                 {% else %}
@@ -142,19 +142,12 @@
                                     </div>
                                     <div style="font-size: 1.1rem; font-weight: bold; color: var(--success);">₱{{ "%.2f" | format(cash_sales) }}</div>
                                 </div>
-                                <div class="machine-status-row">
+                                <div class="machine-status-row" style="border: none; padding-bottom: 0;">
                                     <div>
                                         <strong>Card / Online Payment</strong><br>
                                         <small style="color: var(--text-muted);">Digital transfers today</small>
                                     </div>
                                     <div style="font-size: 1.1rem; font-weight: bold; color: var(--info);">₱{{ "%.2f" | format(online_sales) }}</div>
-                                </div>
-                                <div class="machine-status-row" style="border: none; padding-bottom: 0;">
-                                    <div>
-                                        <strong>Collectibles</strong><br>
-                                        <small style="color: var(--text-muted);">Total unpaid orders</small>
-                                    </div>
-                                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--warning);">₱{{ "%.2f" | format(collectibles) }}</div>
                                 </div>
                             </div>
                         </div>

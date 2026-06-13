@@ -43,7 +43,7 @@
                     <h1>Point of Sales</h1>
                     <div class="dashboard-staff-info">
                         <img src="{{ url_for('static', filename='images/customer.png') }}" alt="User Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name', 'Active User') }} ({{ session.get('role', 'Staff') }})</strong></span>
                     </div>
                 </div>
 
@@ -149,7 +149,6 @@
                                     <option value="Cash" selected>Cash</option>
                                     <option value="E-Wallet">E-Wallet</option>
                                     <option value="Card">Credit/Debit Card</option>
-                                    <option value="Pay Later">Pay Later (Collectibles)</option>
                                 </select>
                             </div>
 
@@ -279,7 +278,7 @@
                     const div = document.createElement('div');
                     div.className = 'suggestion-item';
                     div.innerHTML = `
-                        <span class="suggestion-name">CUST-${c.id} | ${c.name}</span>
+                        <span class="suggestion-name">${c.id} | ${c.name}</span>
                         <span class="suggestion-details">${c.phone} | ${c.address}</span>
                     `;
                     div.onclick = () => selectCustomer(c);
@@ -299,7 +298,7 @@
             clearBtn.style.display = 'block';
 
             infoDisplay.style.display = 'block';
-            document.getElementById('display-cust-name').textContent = `CUST-${cust.id} | ${cust.name}`;
+            document.getElementById('display-cust-name').textContent = `${cust.id} | ${cust.name}`;
             document.getElementById('display-cust-details').textContent = `${cust.phone} | ${cust.address}`;
             receiptName.textContent = 'Customer: ' + cust.name;
         }

@@ -3,8 +3,9 @@ import sqlite3
 DATABASE_NAME = "laundrify.db"
 
 def connect_db():
-    conn = sqlite3.connect(DATABASE_NAME)
+    conn = sqlite3.connect(DATABASE_NAME, timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
     return conn
 
 def create_tables():
@@ -12,95 +13,125 @@ def create_tables():
     cursor = conn.cursor()
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS "EMPLOYEES" (
-        "EmpID" INTEGER,
-        "FirstName" TEXT NOT NULL,
-        "LastName"  TEXT NOT NULL,
-        "Password"  TEXT NOT NULL,
-        "Position"  TEXT NOT NULL,
-        "ContactNumber" TEXT NOT NULL,
-        "Status"    TEXT DEFAULT 'Active',
-        "DateCreated"   TEXT DEFAULT CURRENT_DATE,
-        PRIMARY KEY("EmpID" AUTOINCREMENT)
+        CREATE TABLE IF NOT EXISTS "ROLES" (
+            "RoleID" TEXT,
+            "RoleName" TEXT NOT NULL,
+            PRIMARY KEY ("RoleID")
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS "USERS" (
+            "UserID" TEXT,
+            "RoleID" TEXT NOT NULL,
+            "FirstName" TEXT NOT NULL,
+            "LastName" TEXT NOT NULL,
+            "Password" TEXT NOT NULL,
+            "ContactNumber" TEXT NOT NULL,
+            "IsActive" INTEGER DEFAULT 1,
+            PRIMARY KEY ("UserID"),
+            FOREIGN KEY ("RoleID") REFERENCES "ROLES"("RoleID") ON DELETE RESTRICT ON UPDATE CASCADE
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS "ORDER_STATUS" (
+            "StatusID" TEXT,
+            "StatusName" TEXT NOT NULL,
+            PRIMARY KEY ("StatusID")
         )
     """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "CUSTOMERS" (
-        "CustomerID"    INTEGER,
-        "FirstName" TEXT NOT NULL,
-        "LastName"  TEXT NOT NULL,
-        "ContactNumber" TEXT NOT NULL,
-        "Address"   TEXT NOT NULL,
-        "DateRegistered"    TEXT DEFAULT CURRENT_DATE,
-        PRIMARY KEY("CustomerID" AUTOINCREMENT)
+            "CustomerID" TEXT,
+            "FirstName" TEXT NOT NULL,
+            "LastName" TEXT NOT NULL,
+            "ContactNumber" TEXT NOT NULL,
+            "Address" TEXT NOT NULL,
+            PRIMARY KEY ("CustomerID")
         )
     """)
 
-    cursor.execute('SELECT * FROM "EMPLOYEES" WHERE "Position" = ?', ("Admin",))
-    user = cursor.fetchone()
-
-    if user is None:
-        cursor.execute("""
-            INSERT INTO "EMPLOYEES" ("FirstName", "LastName", "Password", "Position", "ContactNumber")
-            VALUES (?, ?, ?, ?, ?)
-        """, ("System", "Admin", "admin123", "Admin", "09123456789"))
-        
-        cursor.execute("""
-            INSERT INTO "EMPLOYEES" ("FirstName", "LastName", "Password", "Position", "ContactNumber")
-            VALUES (?, ?, ?, ?, ?)
-        """, ("System", "Staff", "staff123", "Staff", "09987654321"))
-
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "SERVICES" (
-        "ServiceID" INTEGER,
-        "ServiceName" TEXT NOT NULL,
-        "Description" TEXT,
-        "Rate" REAL NOT NULL,
-        "UnitType" TEXT NOT NULL,
-            PRIMARY KEY("ServiceID" AUTOINCREMENT)
-            )
-        """)
+            "ServiceID" TEXT,
+            "ServiceName" TEXT NOT NULL,
+            "Description" TEXT,
+            "Rate" REAL NOT NULL,
+            "UnitType" TEXT NOT NULL,
+            PRIMARY KEY ("ServiceID")
+        )
+    """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "ORDERS" (
-            "OrderID" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "CustomerID" INTEGER NOT NULL,
-            "ProcessedByEmpID" INTEGER,
-            "OrderDate" DATETIME DEFAULT CURRENT_TIMESTAMP,
-            "ClaimingMethod" TEXT NOT NULL,
-            "OrderStatus" TEXT,
+            "OrderID" TEXT PRIMARY KEY,
+            "CustomerID" TEXT NOT NULL,
+            "ProcessedByUserID" TEXT NOT NULL,
+            "StatusID" TEXT NOT NULL,
             "TotalAmount" REAL NOT NULL,
+            "ClaimingMethod" TEXT NOT NULL,
+            "OrderDate" TEXT DEFAULT CURRENT_TIMESTAMP,
             "ClaimedDate" TEXT,
-            FOREIGN KEY("CustomerID") REFERENCES "CUSTOMERS"("CustomerID") ON DELETE CASCADE,
-            FOREIGN KEY("ProcessedByEmpID") REFERENCES "EMPLOYEES"("EmpID") ON DELETE SET NULL
+            FOREIGN KEY ("CustomerID") REFERENCES "CUSTOMERS"("CustomerID") ON DELETE RESTRICT ON UPDATE CASCADE,
+            FOREIGN KEY ("ProcessedByUserID") REFERENCES "USERS"("UserID") ON DELETE RESTRICT ON UPDATE CASCADE,
+            FOREIGN KEY ("StatusID") REFERENCES "ORDER_STATUS"("StatusID") ON DELETE RESTRICT ON UPDATE CASCADE
         )
     """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "ORDER_DETAILS" (
-            "OrderDetailID" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "OrderID" INTEGER NOT NULL,
-            "ServiceID" INTEGER NOT NULL,
+            "OrderID" TEXT NOT NULL,
+            "ServiceID" TEXT NOT NULL,
             "WeightQuantity" REAL NOT NULL,
             "ServicePrice" REAL NOT NULL,
             "Subtotal" REAL NOT NULL,
-            FOREIGN KEY("OrderID") REFERENCES "ORDERS"("OrderID") ON DELETE CASCADE,
-            FOREIGN KEY("ServiceID") REFERENCES "SERVICES"("ServiceID")
+            PRIMARY KEY ("OrderID", "ServiceID"),
+            FOREIGN KEY ("OrderID") REFERENCES "ORDERS"("OrderID") ON DELETE CASCADE ON UPDATE CASCADE,
+            FOREIGN KEY ("ServiceID") REFERENCES "SERVICES"("ServiceID") ON DELETE RESTRICT ON UPDATE CASCADE
         )
     """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS "PAYMENTS" (
-            "PaymentID" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "OrderID" INTEGER NOT NULL,
-            "PaymentMethod" TEXT NOT NULL,
-            "PaymentStatus" TEXT,
+            "OrderID" 'TEXT' NOT NULL,
             "AmountPaid" REAL NOT NULL,
-            "PaymentDate" DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY("OrderID") REFERENCES "ORDERS"("OrderID") ON DELETE CASCADE
+            "PaymentMethod" TEXT NOT NULL,
+            "PaymentDate" TEXT DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY ("OrderID"),
+            FOREIGN KEY ("OrderID") REFERENCES "ORDERS"("OrderID") ON DELETE CASCADE ON UPDATE CASCADE
         )
     """)
+
+    cursor.execute('SELECT COUNT(*) FROM "ROLES"')
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany('''
+            INSERT INTO "ROLES" ("RoleID", "RoleName") VALUES (?, ?)
+        ''', [
+            ('R-01', 'Admin'),
+            ('R-02', 'Staff')
+        ])
+
+        cursor.executemany('''
+            INSERT INTO "ORDER_STATUS" ("StatusID", "StatusName") VALUES (?, ?)
+        ''', [
+            ('S-01', 'Pending'),
+            ('S-02', 'Processing'),
+            ('S-03', 'Ready'),
+            ('S-04', 'Claimed'),
+            ('S-05', 'Cancelled')
+        ])
+
+        cursor.execute("""
+            INSERT INTO "USERS" ("UserID", "RoleID", "FirstName", "LastName", "Password", "ContactNumber", "IsActive")
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, ("EMP-001", "R-01", "System", "Admin", "admin123", "09123456789", 1))
+        
+        cursor.execute("""
+            INSERT INTO "USERS" ("UserID", "RoleID", "FirstName", "LastName", "Password", "ContactNumber", "IsActive")
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, ("EMP-002", "R-02", "System", "Staff", "staff123", "09987654321", 1))
 
     conn.commit()
     conn.close()

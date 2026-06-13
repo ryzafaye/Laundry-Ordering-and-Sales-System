@@ -41,28 +41,34 @@
                 <div class="dashboard-header">
                     <h1 style="margin: 0;">Active Order Status Tracker</h1>
                     <div class="dashboard-staff-info">
-                        <img src="../static/images/user.png" alt="Staff Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>                    </div>
+                        <img src="{{ url_for('static', filename='images/user.png') }}" alt="Staff Icon">
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name') }} ({{ session.get('role') }})</strong></span>
+                    </div>
                 </div>
                 
                 <div class="ui-card">
                     <div class="queue-controls">
-                        <div class="search-container">
-                            <input type="text" id="searchInput" class="search-input" placeholder="Search by Order ID or Customer Name..." oninput="filterOrders()">
+                        <form action="{{ url_for('queue.active_orders') }}" method="GET" class="modern-search-form" style="width: 100%;">
+                        <div class="search-input-wrapper" style="flex: 1;">
+                            <svg class="search-icon" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
                             
-                            <select id="statusFilter" class="filter-select" onchange="filterOrders()">
-                                <option value="all">Status: All Active</option>
-                                <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
-                                <option value="ready">Ready for Pickup</option>
-                                <option value="claimed">Claimed (Completed)</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                            <input type="text" name="search" class="search-control" placeholder="Search Order ID or Customer Name... (Press Enter)" value="{{ current_search }}">
+                            
+                            {% if current_search %}
+                            <a href="{{ url_for('queue.active_orders') }}" class="clear-icon" title="Clear Search">&times;</a>
+                            {% endif %}
                         </div>
                         
-                        <div id="activeCount" style="font-size: 0.9rem; color: #64748b;">
-                            Showing <strong>...</strong> active orders
-                        </div>
+                        <select name="status" class="filter-select" onchange="this.form.submit()">
+                            <option value="active" {% if current_status == 'active' %}selected{% endif %}>Status: All Active</option>
+                            <option value="S-01" {% if current_status == 'S-01' %}selected{% endif %}>Pending</option>
+                            <option value="S-02" {% if current_status == 'S-02' %}selected{% endif %}>Processing</option>
+                            <option value="S-03" {% if current_status == 'S-03' %}selected{% endif %}>Ready for Pickup</option>
+                            <option value="S-04" {% if current_status == 'S-04' %}selected{% endif %}>Claimed (Completed)</option>
+                            <option value="S-05" {% if current_status == 'S-05' %}selected{% endif %}>Cancelled</option>
+                            <option value="all" {% if current_status == 'all' %}selected{% endif %}>Show All Records</option>
+                        </select>
+                    </form>
                     </div>
 
                     <table class="basket-table" id="ordersTable">
@@ -80,34 +86,34 @@
                         <tbody>
                             {% for order in orders %}
                             <tr>
-                                <td><strong>ORD-{{ "%03d" | format(order['OrderID']) }}</strong></td>
+                                <td><strong>{{ order['OrderID'] }}</strong></td>
                                 <td>
                                     {{ order['FirstName'] }} {{ order['LastName'] }}<br>
-                                    <span style="font-size: 0.75rem; color: #94a3b8;">CUST-{{ "%03d" | format(order['CustomerID'] if order['CustomerID'] else 0) }}</span>
+                                    <span style="font-size: 0.75rem; color: #94a3b8;">{{ order['CustomerID'] }}</span>
                                 </td>
                                 <td>{{ order['OrderDate'] }}</td>
                                 <td>₱{{ "%.2f" | format(order['TotalAmount']) }}</td>
                                 <td style="font-weight: 500; color: #334155;">{{ order['ClaimingMethod'] }}</td>
                                 
                                 <td>
-                                    {% if order['OrderStatus'] == 'Cancelled' %}
+                                    {% if order['StatusID'] == 'S-05' %}
                                         <select disabled class="select-locked-cancelled"><option>Cancelled</option></select>
-                                    {% elif order['OrderStatus'] == 'Claimed' %}
+                                    {% elif order['StatusID'] == 'S-04' %}
                                         <select disabled class="select-locked-claimed"><option>Claimed</option></select>
                                     {% else %}
-                                        <select class="status-select status-{{ order['OrderStatus'] | lower }}" onchange="updateOrderStatus(this, {{ order['OrderID'] }})">
-                                            {% if order['OrderStatus'] == 'Pending' %}
-                                                <option value="pending" selected>Pending</option>
-                                                <option value="processing">Processing</option>
-                                                <option value="ready">Ready</option>
-                                                <option value="claimed">Claimed</option>
-                                            {% elif order['OrderStatus'] == 'Processing' %}
-                                                <option value="processing" selected>Processing</option>
-                                                <option value="ready">Ready</option>
-                                                <option value="claimed">Claimed</option>
-                                            {% elif order['OrderStatus'] == 'Ready' %}
-                                                <option value="ready" selected>Ready</option>
-                                                <option value="claimed">Claimed</option>
+                                        <select class="status-select status-{{ order['StatusName'] | lower }}" onchange="updateOrderStatus(this, '{{ order['OrderID'] }}')">
+                                            {% if order['StatusID'] == 'S-01' %}
+                                                <option value="S-01" selected>Pending</option>
+                                                <option value="S-02">Processing</option>
+                                                <option value="S-03">Ready</option>
+                                                <option value="S-04">Claimed</option>
+                                            {% elif order['StatusID'] == 'S-02' %}
+                                                <option value="S-02" selected>Processing</option>
+                                                <option value="S-03">Ready</option>
+                                                <option value="S-04">Claimed</option>
+                                            {% elif order['StatusID'] == 'S-03' %}
+                                                <option value="S-03" selected>Ready</option>
+                                                <option value="S-04">Claimed</option>
                                             {% endif %}
                                         </select>
                                     {% endif %}
@@ -119,13 +125,13 @@
                                         <script type="application/json" id="items-{{ order['OrderID'] }}">{{ order['items_json'] | safe }}</script>
                                         
                                         <button class="btn-action-sm" style="padding: 5px 10px; cursor:pointer;" 
-                                                onclick="openDetailsModal({{ order['OrderID'] }}, '{{ order['FirstName'] }} {{ order['LastName'] }}', '₱{{ '%.2f' | format(order['TotalAmount']) }}')">View</button>
+                                                onclick="openDetailsModal('{{ order['OrderID'] }}', '{{ order['FirstName'] }} {{ order['LastName'] }}')">View</button>
                                                 
                                         <button class="btn-action-sm btn-print" style="padding: 5px 10px; cursor:pointer;" 
-                                                onclick="openReceiptModal({{ order['OrderID'] }}, '{{ order['FirstName'] }} {{ order['LastName'] }}', '{{ '%.2f' | format(order['TotalAmount']) }}')">Print</button>
+                                                onclick="openReceiptModal('{{ order['OrderID'] }}', '{{ order['FirstName'] }} {{ order['LastName'] }}', '{{ '%.2f' | format(order['TotalAmount']) }}')">Print</button>
                                         
-                                        {% if order['OrderStatus'] == 'Pending' %}
-                                        <form id="cancel-form-{{ order['OrderID'] }}" action="{{ url_for('queue.cancel_order', order_id=order['OrderID']) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to cancel this order? This action cannot be undone.');">
+                                        {% if order['StatusID'] == 'S-01' %}
+                                        <form action="{{ url_for('queue.cancel_order', order_id=order['OrderID']) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to cancel this order? This action cannot be undone.');">
                                             <button type="submit" style="background: white; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Cancel</button>
                                         </form>
                                         {% endif %}
@@ -135,7 +141,7 @@
                             {% else %}
                             <tr>
                                 <td colspan="7" style="text-align: center; padding: 30px; color: #94a3b8;">
-                                    No active orders found in the database.
+                                    No records found matching your query.
                                 </td>
                             </tr>
                             {% endfor %}
@@ -146,7 +152,7 @@
         </main>
     </div>
 
-    <div id="detailsModal" class="modal-overlay">
+    <div id="detailsModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Order Breakdown</h3>
@@ -155,7 +161,6 @@
             <div class="modal-body">
                 <p style="margin-bottom: 5px; color: #64748b;">Order Ref: <strong id="det-id" style="color: #334155;">---</strong></p>
                 <p style="margin-bottom: 20px; color: #64748b;">Customer: <strong id="det-name" style="color: #334155;">---</strong></p>
-                
                 <table class="basket-table" style="margin-bottom: 0;">
                     <thead>
                         <tr>
@@ -164,8 +169,7 @@
                             <th style="text-align: right;">Amount</th>
                         </tr>
                     </thead>
-                    <tbody id="det-tbody">
-                        </tbody>
+                    <tbody id="det-tbody"></tbody>
                 </table>
             </div>
             <div class="modal-footer">
@@ -174,7 +178,7 @@
         </div>
     </div>
 
-    <div id="receiptModal" class="modal-overlay">
+    <div id="receiptModal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="width: auto;">
             <div class="modal-header">
                 <h3>Print Receipt</h3>
@@ -221,62 +225,20 @@
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
 
-        function updateRowColor(selectElement) {
-            selectElement.classList.remove('status-pending', 'status-processing', 'status-ready');
-            selectElement.classList.add('status-' + selectElement.value);
-        }
-
         function updateOrderStatus(selectElement, orderId) {
-            updateRowColor(selectElement);
-            const cancelForm = document.getElementById('cancel-form-' + orderId);
-            if (cancelForm) cancelForm.style.display = 'none';
-
-            const capitalizedStatus = selectElement.value.charAt(0).toUpperCase() + selectElement.value.slice(1);
+            const newStatusId = selectElement.value;
+            
             fetch(`/update_status/${orderId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `status=${capitalizedStatus}`
+                body: `status_id=${newStatusId}`
             }).then(() => {
-                if (capitalizedStatus === 'Claimed') window.location.reload();
-                else filterOrders();
+                window.location.reload();
             }).catch(error => console.error('Error:', error));
         }
 
-        document.querySelectorAll('.status-select').forEach(select => updateRowColor(select));
-
-        function filterOrders() {
-            const searchInput = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
-            const tableRows = document.querySelectorAll('#ordersTable tbody tr');
-            let visibleCount = 0;
-
-            tableRows.forEach(row => {
-                if(row.children.length === 1) return; 
-                const rowText = row.textContent.toLowerCase();
-                let rowStatus = '';
-                const activeSelect = row.querySelector('.status-select');
-                const lockedSelect = row.querySelector('.select-locked-cancelled, .select-locked-claimed');
-                
-                if (activeSelect) rowStatus = activeSelect.value.toLowerCase();
-                else if (lockedSelect) rowStatus = lockedSelect.textContent.trim().toLowerCase();
-                
-                const matchesSearch = rowText.includes(searchInput);
-                let matchesStatus = (statusFilter === 'all') ? (rowStatus !== 'claimed' && rowStatus !== 'cancelled') : (rowStatus === statusFilter);
-
-                if (matchesSearch && matchesStatus) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-            document.getElementById('activeCount').innerHTML = `Showing <strong>${visibleCount}</strong> active orders`;
-        }
-        window.onload = filterOrders;
-
-        function openDetailsModal(orderId, name, totalAmount) {
-            const formattedId = 'ORD-' + String(orderId).padStart(4, '0');
-            document.getElementById('det-id').textContent = formattedId;
+        function openDetailsModal(orderId, name) {
+            document.getElementById('det-id').textContent = orderId;
             document.getElementById('det-name').textContent = name;
             
             const itemsData = JSON.parse(document.getElementById('items-' + orderId).textContent);
@@ -296,13 +258,10 @@
             document.getElementById('detailsModal').style.display = 'flex';
         }
 
-        function closeDetailsModal() {
-            document.getElementById('detailsModal').style.display = 'none';
-        }
+        function closeDetailsModal() { document.getElementById('detailsModal').style.display = 'none'; }
 
         function openReceiptModal(orderId, name, totalAmount) {
-            const formattedId = 'ORD-' + String(orderId).padStart(4, '0');
-            document.getElementById('rec-id').textContent = formattedId;
+            document.getElementById('rec-id').textContent = orderId;
             document.getElementById('rec-name').textContent = name;
             document.getElementById('rec-total').textContent = totalAmount;
             
@@ -323,9 +282,7 @@
             document.getElementById('receiptModal').style.display = 'flex';
         }
 
-        function closeReceiptModal() {
-            document.getElementById('receiptModal').style.display = 'none';
-        }
+        function closeReceiptModal() { document.getElementById('receiptModal').style.display = 'none'; }
 
         function triggerPrint() {
             const printContent = document.getElementById('printable-area').innerHTML;

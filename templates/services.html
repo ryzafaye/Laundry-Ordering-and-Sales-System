@@ -36,7 +36,6 @@
             </div>
         </aside>
 
-
         <main class="workspace">
             <div id="view-services" class="view-panel active-view">
                 
@@ -44,7 +43,7 @@
                     <h1 style="margin: 0;">Laundry Services</h1>
                     <div class="dashboard-staff-info">
                         <img src="{{ url_for('static', filename='images/customer.png') }}" alt="User Icon">
-                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session['full_name'] }} ({{ session['position'] }})</strong></span>
+                        <span>Logged in as: <strong style="color: var(--brand-dark);">{{ session.get('full_name') }} ({{ session.get('role') }})</strong></span>
                     </div>
                 </div>
                 
@@ -52,9 +51,18 @@
                     <div class="services-table-card">
                     <div class="table-header-row">
                         <h3>Laundrify Services List</h3>
-                        <div class="search-box">
-                            <input type="text" id="searchService" class="form-control" placeholder="Search service name..." oninput="filterServices()">
-                        </div>
+                        
+                        <form action="{{ url_for('service.services') }}" method="GET" class="modern-search-form" style="width: 350px;">
+                            <div class="search-input-wrapper">
+                                <svg class="search-icon" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                                
+                                <input type="text" name="search" class="search-control" placeholder="Search service name or ID... (Press Enter)" value="{{ current_search }}">
+                                
+                                {% if current_search %}
+                                <a href="{{ url_for('service.services') }}" class="clear-icon" title="Clear Search">&times;</a>
+                                {% endif %}
+                            </div>
+                        </form>
                     </div>
 
                     <div class="table-wrapper">
@@ -64,14 +72,14 @@
                                     <th>Service ID</th>
                                     <th>Service Name</th>
                                     <th>Description</th>
-                                    <th>Base Rate</th>
+                                    <th>Rate</th>
                                     <th>Unit Type</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for s in services %}
                                 <tr>
-                                    <td><strong>SRV-{{ "%03d" | format(s['ServiceID']) }}</strong></td>
+                                    <td><strong>{{ s['ServiceID'] }}</strong></td>
                                     <td style="font-weight: bold; color: var(--brand-dark);">{{ s['ServiceName'] }}</td>
                                     <td style="color: #64748b; font-size: 0.9rem;">{{ s['Description'] }}</td>
                                     <td style="font-weight: bold; color: #15803d;">₱{{ "%.2f" | format(s['Rate']) }}</td>
@@ -84,7 +92,7 @@
                                 {% else %}
                                 <tr>
                                     <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">
-                                        No laundry services available at the moment.
+                                        No laundry services match your search criteria.
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -100,29 +108,6 @@
     <script>
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
-
-        function filterServices() {
-            const query = document.getElementById('searchService').value.toLowerCase();
-            const rows = document.querySelectorAll('#serviceTable tbody tr');
-
-            rows.forEach(row => {
-                if (row.querySelector('td[colspan="5"]')) {
-                    if (query.length > 0) {
-                        row.style.display = 'none';
-                    } else {
-                        row.style.display = '';
-                    }
-                    return; 
-                }
-
-                const rowText = row.textContent.toLowerCase();
-                if (rowText.includes(query)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
     </script>
 </body>
 </html>
